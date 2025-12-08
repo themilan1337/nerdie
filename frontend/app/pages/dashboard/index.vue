@@ -48,14 +48,14 @@ const quickActions = [
       <div
         v-for="stat in stats"
         :key="stat.name"
-        class="group glass-panel rounded-3xl p-6 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-1"
+        class="group glass-panel rounded-3xl p-6 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]"
       >
         <div class="flex items-start justify-between mb-8">
-          <div class="p-3 bg-zinc-50 rounded-2xl group-hover:bg-zinc-900 transition-colors duration-500">
-            <Icon :icon="stat.icon" class="w-5 h-5 text-zinc-900 group-hover:text-white transition-colors duration-500" />
+          <div class="p-3 bg-zinc-50 rounded-2xl transition-colors duration-500">
+            <Icon :icon="stat.icon" class="w-5 h-5 text-zinc-900 transition-colors duration-500" />
           </div>
           <span
-            class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 group-hover:bg-zinc-900 group-hover:text-white transition-colors duration-500"
+            class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 transition-colors duration-500"
           >
             {{ stat.change }}
           </span>
@@ -79,8 +79,8 @@ const quickActions = [
           :to="action.href"
           class="group bg-white border border-zinc-100 p-6 rounded-3xl hover:border-zinc-300 transition-all duration-300 flex flex-col items-center text-center justify-center gap-4 aspect-[4/3]"
         >
-          <div class="w-14 h-14 rounded-full bg-zinc-50 flex items-center justify-center group-hover:bg-zinc-900 transition">
-            <Icon :icon="action.icon" class="w-6 h-6 text-zinc-900 group-hover:text-white transition-colors duration-300" />
+          <div class="w-14 h-14 rounded-full bg-zinc-50 flex items-center justify-center transition">
+            <Icon :icon="action.icon" class="w-6 h-6 text-zinc-900 transition-colors duration-300" />
           </div>
           <div>
             <h3 class="font-medium text-zinc-900 mb-1 group-hover:text-black">{{ action.name }}</h3>

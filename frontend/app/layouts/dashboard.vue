@@ -5,7 +5,11 @@ import { Icon } from '@iconify/vue'
 const { isSidebarExpanded, toggleSidebar: toggleDesktopSidebar } = useSidebar()
 const isSidebarOpen = ref(false)
 const showLogoutDropdown = ref(false)
+const showNotifications = ref(false)
+const showSearch = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
+const notificationRef = ref<HTMLElement | null>(null)
+const searchQuery = ref('')
 
 const { userData, signOut, initAuthListener } = useAuth()
 
@@ -13,16 +17,35 @@ const { userData, signOut, initAuthListener } = useAuth()
 onMounted(() => {
   initAuthListener()
   document.addEventListener('click', handleClickOutside)
+
+  // Keyboard shortcut for search (Cmd+K or Ctrl+K)
+  document.addEventListener('keydown', handleKeyboardShortcut)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('keydown', handleKeyboardShortcut)
 })
+
+// Handle keyboard shortcuts
+const handleKeyboardShortcut = (event: KeyboardEvent) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+    event.preventDefault()
+    showSearch.value = !showSearch.value
+  }
+  if (event.key === 'Escape') {
+    showSearch.value = false
+    showNotifications.value = false
+  }
+}
 
 // Handle click outside dropdown
 const handleClickOutside = (event: MouseEvent) => {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
     showLogoutDropdown.value = false
+  }
+  if (notificationRef.value && !notificationRef.value.contains(event.target as Node)) {
+    showNotifications.value = false
   }
 }
 
@@ -210,17 +233,51 @@ const userEmail = computed(() => {
         </div>
 
         <div class="flex items-center gap-6">
-          <!-- Command Bar Trigger -->
-          <button class="hidden md:flex items-center gap-3 px-4 py-2.5 bg-white border border-zinc-200/50 rounded-full shadow-sm hover:shadow-md hover:border-zinc-300 transition-all duration-300 w-64 group">
+          <!-- Search Trigger -->
+          <button
+            @click="showSearch = true"
+            class="hidden md:flex items-center gap-3 px-4 py-2.5 bg-white border border-zinc-200/50 rounded-full shadow-sm hover:shadow-md hover:border-zinc-300 transition-all duration-300 w-64 group"
+          >
             <Icon icon="hugeicons:search-01" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-600" />
             <span class="text-sm text-zinc-400 group-hover:text-zinc-600">Search anything...</span>
             <span class="ml-auto text-xs text-zinc-300 border border-zinc-200 px-1.5 py-0.5 rounded">⌘K</span>
           </button>
 
-          <button class="p-2.5 rounded-full hover:bg-zinc-100 transition-colors relative group">
-            <Icon icon="hugeicons:notification-03" class="w-5 h-5 text-zinc-500 group-hover:text-zinc-900" />
-            <span class="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full ring-2 ring-white"></span>
-          </button>
+          <!-- Notifications -->
+          <div class="relative z-[99999]" ref="notificationRef">
+            <button
+              @click="showNotifications = !showNotifications"
+              class="p-2.5 rounded-full hover:bg-zinc-100 transition-colors relative group"
+              :class="{ 'bg-zinc-100': showNotifications }"
+            >
+              <Icon icon="hugeicons:notification-03" class="w-5 h-5 text-zinc-500 group-hover:text-zinc-900" />
+            </button>
+
+            <!-- Notifications Dropdown -->
+            <Transition
+              enter-active-class="transition ease-out duration-200"
+              enter-from-class="opacity-0 translate-y-2 scale-95"
+              enter-to-class="opacity-100 translate-y-0 scale-100"
+              leave-active-class="transition ease-in duration-150"
+              leave-from-class="opacity-100 translate-y-0 scale-100"
+              leave-to-class="opacity-0 translate-y-2 scale-95"
+            >
+              <div
+                v-if="showNotifications"
+                class="absolute right-0 top-full mt-3 w-80 bg-white/95 backdrop-blur-xl border border-zinc-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden"
+              >
+                <div class="p-4 border-b border-zinc-200/50">
+                  <h3 class="font-medium text-zinc-900">Notifications</h3>
+                </div>
+                <div class="p-8 text-center">
+                  <div class="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Icon icon="hugeicons:notification-03" class="w-6 h-6 text-zinc-300" />
+                  </div>
+                  <p class="text-sm text-zinc-500">No notifications</p>
+                </div>
+              </div>
+            </Transition>
+          </div>
         </div>
       </header>
 
@@ -231,5 +288,111 @@ const userEmail = computed(() => {
         </div>
       </main>
     </div>
+
+    <!-- Search Modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showSearch"
+          class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-[10vh] px-4"
+          @click="showSearch = false"
+        >
+          <div
+            @click.stop
+            class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease-out]"
+          >
+            <!-- Search Input -->
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-zinc-200">
+              <Icon icon="hugeicons:search-01" class="w-5 h-5 text-zinc-400 flex-shrink-0" />
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search chats, documents, and more..."
+                class="flex-1 text-base text-zinc-900 placeholder-zinc-400 focus:outline-none bg-transparent"
+                autofocus
+              />
+              <button
+                @click="showSearch = false"
+                class="text-xs text-zinc-400 hover:text-zinc-600 px-2 py-1 border border-zinc-200 rounded"
+              >
+                ESC
+              </button>
+            </div>
+
+            <!-- Search Results -->
+            <div class="max-h-[60vh] overflow-y-auto">
+              <div v-if="!searchQuery.trim()" class="p-8 text-center">
+                <div class="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Icon icon="hugeicons:search-01" class="w-8 h-8 text-zinc-300" />
+                </div>
+                <p class="text-sm text-zinc-500 mb-2">Start typing to search</p>
+                <p class="text-xs text-zinc-400">Search across chats, documents, and pages</p>
+              </div>
+
+              <div v-else class="p-4">
+                <div class="text-center py-12">
+                  <div class="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icon icon="hugeicons:search-01" class="w-8 h-8 text-zinc-300" />
+                  </div>
+                  <p class="text-sm text-zinc-500 mb-1">No results found for "{{ searchQuery }}"</p>
+                  <p class="text-xs text-zinc-400">Try searching for something else</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div v-if="!searchQuery.trim()" class="border-t border-zinc-200 p-4">
+              <p class="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-3 px-2">Quick Actions</p>
+              <div class="space-y-1">
+                <NuxtLink
+                  to="/dashboard/chat/new"
+                  @click="showSearch = false"
+                  class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-sm text-zinc-700 group"
+                >
+                  <Icon icon="hugeicons:plus-sign" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900" />
+                  <span>New Chat</span>
+                </NuxtLink>
+                <NuxtLink
+                  to="/dashboard/rag"
+                  @click="showSearch = false"
+                  class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-sm text-zinc-700 group"
+                >
+                  <Icon icon="hugeicons:file-upload" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900" />
+                  <span>Upload Document</span>
+                </NuxtLink>
+                <NuxtLink
+                  to="/dashboard/chat"
+                  @click="showSearch = false"
+                  class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-sm text-zinc-700 group"
+                >
+                  <Icon icon="hugeicons:bubble-chat" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900" />
+                  <span>View Chats</span>
+                </NuxtLink>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
