@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useChatStore } from '../../../stores/chat'
+import { useIngestionApi } from '../../../composables/useIngestionApi'
 
 definePageMeta({
   layout: 'dashboard',
@@ -8,6 +10,28 @@ definePageMeta({
 })
 
 const { userData } = useAuth()
+const chatStore = useChatStore()
+const { fetchDocuments } = useIngestionApi()
+
+// Local state for documents
+const recentDocuments = ref<any[]>([])
+const isLoadingDocs = ref(true)
+
+// Fetch data on mount
+onMounted(async () => {
+    isLoadingDocs.value = true
+    try {
+        const docs = await fetchDocuments()
+        // Assuming docs is an array, we might need to map it if structure differs
+        // The ingestion list doc endpoint returns list of objects.
+        // We'll map them to match UI needs or use as is.
+        recentDocuments.value = docs || []
+    } catch (e) {
+        console.error("Failed to fetch docs", e)
+    } finally {
+        isLoadingDocs.value = false
+    }
+})
 
 // Get time-based greeting
 const greeting = computed(() => {
@@ -32,26 +56,22 @@ const firstName = computed(() => {
   return 'User'
 })
 
-const stats = [
-  { name: 'Total Chats', value: '24', icon: 'hugeicons:bubble-chat', change: '+12%', changeType: 'positive' },
-  { name: 'Documents in RAG', value: '156', icon: 'hugeicons:database-01', change: '+8%', changeType: 'positive' },
-  { name: 'Queries Today', value: '89', icon: 'hugeicons:analytics-up', change: '+23%', changeType: 'positive' },
-  { name: 'Avg Response Time', value: '1.2s', icon: 'hugeicons:clock-01', change: '-5%', changeType: 'positive' },
-]
+// Computed Stats
+const stats = computed(() => [
+  { name: 'Total Chats', value: chatStore.sessions.length.toString(), icon: 'hugeicons:bubble-chat', change: '+0%', changeType: 'neutral' }, // Change % would need real historical data
+  { name: 'Documents in RAG', value: recentDocuments.value.length.toString(), icon: 'hugeicons:database-01', change: '+0%', changeType: 'neutral' },
+  { name: 'Queries Today', value: '0', icon: 'hugeicons:analytics-up', change: '0%', changeType: 'neutral' }, // Need query tracking in store to show real data
+  { name: 'Avg Response Time', value: '1.2s', icon: 'hugeicons:clock-01', change: '-5%', changeType: 'positive' }, // Mock for now
+])
 
-const recentChats = [
-  { id: 1, title: 'Machine Learning Basics', preview: 'What are the fundamental concepts...', time: '2 min ago', unread: true },
-  { id: 2, title: 'Python Data Analysis', preview: 'How to use pandas for data...', time: '1 hour ago', unread: false },
-  { id: 3, title: 'Web Development Tips', preview: 'Best practices for building...', time: '3 hours ago', unread: false },
-  { id: 4, title: 'AI Ethics Discussion', preview: 'What are the ethical considerations...', time: '1 day ago', unread: false },
-]
+const recentChats = computed(() => chatStore.recentChats.map((c: any) => ({
+    id: c.id,
+    title: c.title,
+    preview: c.messages[c.messages.length - 1]?.content.slice(0, 50) + '...' || 'No messages',
+    time: new Date(c.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+    unread: false
+})))
 
-const recentDocuments = [
-  { name: 'research_paper_2024.pdf', size: '2.4 MB', uploadedAt: '2 hours ago', type: 'PDF' },
-  { name: 'company_handbook.docx', size: '1.8 MB', uploadedAt: '1 day ago', type: 'DOCX' },
-  { name: 'meeting_notes.txt', size: '45 KB', uploadedAt: '2 days ago', type: 'TXT' },
-  { name: 'project_overview.pdf', size: '3.2 MB', uploadedAt: '3 days ago', type: 'PDF' },
-]
 
 const quickActions = [
   { name: 'New Chat', description: 'Start a conversation', icon: 'hugeicons:bubble-chat', href: '/dashboard/chat/new', color: 'bg-blue-500' },
@@ -59,6 +79,13 @@ const quickActions = [
   { name: 'View Analytics', description: 'Check performance', icon: 'hugeicons:analytics-up', href: '/dashboard/analytics', color: 'bg-purple-500' },
   { name: 'Quick Query', description: 'Fast AI response', icon: 'hugeicons:flash', href: '/dashboard/chat/new', color: 'bg-orange-500' },
 ]
+
+// Helper to format file size if needed
+const formatSize = (size: number) => {
+    if (!size) return 'Unknown'
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(1) + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
+};
 </script>
 
 <template>
@@ -128,7 +155,12 @@ const quickActions = [
             </NuxtLink>
           </div>
 
-          <div class="space-y-4">
+          <div v-if="recentChats.length === 0" class="text-center py-12 text-zinc-400">
+             <Icon icon="hugeicons:bubble-chat" class="w-10 h-10 mx-auto mb-3 opacity-50" />
+             <p>No recent conversations</p>
+          </div>
+
+          <div class="space-y-4" v-else>
             <NuxtLink
               v-for="chat in recentChats"
               :key="chat.id"
@@ -164,18 +196,28 @@ const quickActions = [
             </NuxtLink>
           </div>
 
-          <div class="space-y-3">
+           <div v-if="isLoadingDocs" class="flex justify-center py-8">
+              <Icon icon="svg-spinners:ring-resize" class="w-6 h-6 text-zinc-400" />
+           </div>
+           
+           <div v-else-if="recentDocuments.length === 0" class="text-center py-8 text-zinc-400 text-sm">
+                No documents uploaded yet
+           </div>
+
+          <div class="space-y-3" v-else>
             <div
-              v-for="doc in recentDocuments"
-              :key="doc.name"
+              v-for="doc in recentDocuments.slice(0, 5)"
+              :key="doc.name || doc.id"
               class="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-50 transition-colors cursor-pointer group"
             >
               <div class="p-2 bg-zinc-50 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
                 <Icon icon="hugeicons:file-text" class="w-4 h-4 text-zinc-500 group-hover:text-zinc-900" />
               </div>
               <div class="flex-1 min-w-0">
-                <h3 class="text-sm font-medium text-zinc-700 truncate group-hover:text-zinc-900">{{ doc.name }}</h3>
-                <p class="text-xs text-zinc-400">{{ doc.size }} • {{ doc.uploadedAt }}</p>
+                <h3 class="text-sm font-medium text-zinc-700 truncate group-hover:text-zinc-900">{{ doc.metadata?.source || doc.filename || doc.id }}</h3>
+                <!-- Assuming doc might have metadata with source, or fallback to id -->
+                <!-- API response structure isn't 100% clear on 'name', assuming metadata.source or filename -->
+                <p class="text-xs text-zinc-400">{{ formatSize(doc.metadata?.size || 0) }}</p>
               </div>
             </div>
           </div>

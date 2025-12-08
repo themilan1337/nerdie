@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
-import type { Document } from '~/types/ingestion'
+import { useIngestionApi } from '../../../../composables/useIngestionApi'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: 'auth'
 })
+
+// Real API
+const { fetchDocuments, uploadDocument } = useIngestionApi()
 
 const searchQuery = ref('')
 const selectedFilter = ref('all')
@@ -13,51 +17,48 @@ const showSuccessNotification = ref(false)
 const successMessage = ref('')
 const showErrorNotification = ref(false)
 const errorMessage = ref('')
-
-const {
-  isLoading: isIngesting,
-  error: ingestionError,
-  uploadProgress,
-  processFile,
-  ingestText,
-  healthCheck
-} = useIngestion()
+const isIngesting = ref(false)
+const documents = ref<any[]>([])
+const isLoading = ref(true)
 
 const filterOptions = [
   { value: 'all', label: 'All Documents' },
   { value: 'pdf', label: 'PDFs' },
   { value: 'image', label: 'Images' },
   { value: 'text', label: 'Text Files' },
-  { value: 'processing', label: 'Processing' },
 ]
 
-const documents = ref<Document[]>([])
-
+// Stats based on real data
 const stats = computed(() => ({
   total: documents.value.length,
-  processed: documents.value.filter(d => d.status === 'processed').length,
-  processing: documents.value.filter(d => d.status === 'processing').length,
-  totalChunks: documents.value.reduce((sum, d) => sum + d.chunks, 0),
-  totalEmbeddings: documents.value.reduce((sum, d) => sum + d.embeddings, 0),
+  // We don't have processed/processing status from list API yet, assume all listed are processed for now
+  // or check if metadata has status.
+  processed: documents.value.length, 
+  processing: isIngesting.value ? 1 : 0, 
+  // API doesn't return chunk count in list (yet), maybe metadata has it?
+  totalChunks: documents.value.reduce((sum, d) => sum + (d.metadata?.chunks || 0), 0),
+  totalEmbeddings: documents.value.reduce((sum, d) => sum + (d.metadata?.embeddings || 0), 0),
 }))
 
 const filteredDocuments = computed(() => {
   let filtered = documents.value
 
   if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(doc =>
-      doc.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      (doc.metadata?.source || doc.filename || doc.id).toLowerCase().includes(query)
     )
   }
 
   if (selectedFilter.value !== 'all') {
-    if (selectedFilter.value === 'processing') {
-      filtered = filtered.filter(doc => doc.status === 'processing')
-    } else {
-      filtered = filtered.filter(doc =>
-        doc.type.toLowerCase() === selectedFilter.value
-      )
-    }
+      // Simple type matching logic
+      filtered = filtered.filter(doc => {
+          const name = (doc.metadata?.source || doc.filename || '').toLowerCase()
+          if (selectedFilter.value === 'pdf') return name.endsWith('.pdf')
+          if (selectedFilter.value === 'image') return name.match(/\.(jpg|jpeg|png|webp)$/)
+          if (selectedFilter.value === 'text') return name.match(/\.(txt|md|json)$/)
+          return true
+      })
   }
 
   return filtered
@@ -79,119 +80,77 @@ const showNotification = (message: string, type: 'success' | 'error') => {
   }
 }
 
+const loadDocs = async () => {
+    isLoading.value = true
+    try {
+        const docs = await fetchDocuments()
+        documents.value = docs || []
+    } catch (e) {
+        console.error("Failed to load docs", e)
+        showNotification("Failed to load documents", 'error')
+    } finally {
+        isLoading.value = false
+    }
+}
+
+onMounted(() => {
+    loadDocs()
+})
+
 const handleFileUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const files = input.files
 
   if (!files || files.length === 0) return
 
+  isIngesting.value = true
+  
+  // Upload sequentially or parallel
   for (let i = 0; i < files.length; i++) {
-    const file = files[i]
-    if (!file) continue
-
-    const fileType = file.type.includes('pdf')
-      ? 'PDF'
-      : file.type.includes('image')
-      ? 'Image'
-      : 'Text'
-
-    const tempDoc: Document = {
-      id: `temp-${Date.now()}-${i}`,
-      name: file.name || 'Untitled',
-      type: fileType as 'PDF' | 'Image' | 'Text',
-      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-      uploadedAt: new Date().toISOString().split('T')[0],
-      status: 'processing',
-      chunks: 0,
-      embeddings: 0,
-      metadata: {
-        filename: file.name,
-        fileType: file.type,
-        fileSize: file.size,
-      }
-    }
-
-    documents.value.unshift(tempDoc)
-
-    try {
-      const response = await processFile(file)
-
-      const docIndex = documents.value.findIndex(d => d.id === tempDoc.id)
-      if (docIndex !== -1 && documents.value[docIndex]) {
-        // Create a new object with safely spread properties to avoid type errors
-        const updatedDoc = {
-          ...documents.value[docIndex]!,
-          id: response.documentId || tempDoc.id,
-          status: 'processed' as const,
-          chunks: response.chunks || 0,
-          embeddings: response.embeddings || 0,
+      const file = files[i]
+      if (file) {
+        try {
+            await uploadDocument(file)
+            showNotification(`Successfully processed ${file.name}`, 'success')
+        } catch (e: any) {
+            console.error(e)
+            showNotification(`Failed to upload ${file.name}`, 'error')
         }
-        documents.value[docIndex] = updatedDoc as Document
       }
-
-      showNotification(`Successfully processed ${file.name}`, 'success')
-    } catch (err: any) {
-      console.error('Upload error:', err)
-
-      const docIndex = documents.value.findIndex(d => d.id === tempDoc.id)
-      if (docIndex !== -1 && documents.value[docIndex]) {
-        documents.value[docIndex]!.status = 'failed'
-      }
-
-      showNotification(`Failed to process ${file.name}: ${err.message}`, 'error')
-    }
   }
-
+  
+  await loadDocs()
+  isIngesting.value = false
   input.value = ''
 }
 
 const handleDelete = (id: string) => {
-  if (confirm('Are you sure you want to delete this document?')) {
-    documents.value = documents.value.filter(doc => doc.id !== id)
-    showNotification('Document deleted successfully', 'success')
+    // API doesn't show delete endpoint in provided swagger, maybe impl later
+  if (confirm('Delete functionality not yet available in API. Remove from UI only?')) {
+     // documents.value = documents.value.filter(doc => doc.id !== id)
   }
 }
 
-const handleDownload = (doc: Document) => {
-  console.log('Downloading:', doc.name)
-  showNotification('Download feature coming soon', 'error')
+const handleView = (doc: any) => {
+    // Implement view if API allows content retrieval
 }
 
-const handleView = (doc: Document) => {
-  console.log('Viewing:', doc.name)
-  showNotification('View feature coming soon', 'error')
+const handleReprocess = async (doc: any) => {
+    // Re-upload?
 }
 
-const handleReprocess = async (doc: Document) => {
-  console.log('Reprocessing:', doc.name)
-  showNotification('Reprocess feature coming soon', 'error')
-}
+
+// UI Helper
+const formatSize = (size: number) => {
+    if (!size) return '-'
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(1) + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
+};
 
 const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'processed':
-      return { color: 'bg-green-100 text-green-700', icon: 'hugeicons:check-circle-01', text: 'Processed' }
-    case 'processing':
-      return { color: 'bg-blue-100 text-blue-700', icon: 'hugeicons:clock-01', text: 'Processing' }
-    case 'failed':
-      return { color: 'bg-red-100 text-red-700', icon: 'hugeicons:alert-circle', text: 'Failed' }
-    default:
-      return { color: 'bg-gray-100 text-gray-700', icon: 'hugeicons:clock-01', text: 'Unknown' }
-  }
+    // status isn't in list API explicitly, assume processed if listed
+    return { color: 'bg-green-100 text-green-700', icon: 'hugeicons:check-circle-01', text: 'Indexed' }
 }
-
-const checkServiceHealth = async () => {
-  try {
-    await healthCheck()
-    console.log('Ingestion service is healthy')
-  } catch (err) {
-    console.error('Ingestion service health check failed:', err)
-  }
-}
-
-onMounted(() => {
-  checkServiceHealth()
-})
 </script>
 
 <template>
@@ -233,7 +192,7 @@ onMounted(() => {
         <p class="text-3xl font-light text-zinc-900">{{ stats.total }}</p>
       </div>
       <div class="glass-panel p-6 rounded-3xl">
-        <p class="text-sm text-zinc-400 mb-2 font-medium">Text Chunks</p>
+        <p class="text-sm text-zinc-400 mb-2 font-medium">Chunks</p>
         <p class="text-3xl font-light text-zinc-900">{{ stats.totalChunks }}</p>
       </div>
       <div class="glass-panel p-6 rounded-3xl">
@@ -250,7 +209,7 @@ onMounted(() => {
           type="file"
           multiple
           class="hidden"
-          accept=".pdf,.txt,.md,.json,.csv"
+          accept=".pdf,.txt,.md,.json,.csv,image/*"
           @change="handleFileUpload"
           :disabled="isIngesting"
         />
@@ -258,7 +217,7 @@ onMounted(() => {
         <div class="absolute inset-0 flex flex-col items-center justify-center">
           <div class="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
             <Icon
-              :icon="isIngesting ? 'hugeicons:loading-03' : 'hugeicons:cloud-upload'"
+              :icon="isIngesting ? 'svg-spinners:ring-resize' : 'hugeicons:cloud-upload'"
               class="w-8 h-8 text-zinc-400 group-hover:text-zinc-900 transition-colors"
               :class="{'animate-spin': isIngesting}"
             />
@@ -267,7 +226,7 @@ onMounted(() => {
             {{ isIngesting ? 'Processing files...' : 'Drop files here to upload' }}
           </p>
           <p class="text-sm text-zinc-400 font-light">
-            Support for PDF, TXT, MD, JSON
+            Support for PDF, TXT, MD, JSON, Images
           </p>
         </div>
       </label>
@@ -301,6 +260,10 @@ onMounted(() => {
             </select>
             <Icon icon="hugeicons:arrow-down-01" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
           </div>
+          
+           <button @click="loadDocs" class="p-2 rounded-full bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-500 transition-colors">
+            <Icon icon="hugeicons:refresh" class="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -318,16 +281,21 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100">
-              <tr v-if="filteredDocuments.length === 0">
+              <tr v-if="isLoading">
+                 <td colspan="5" class="px-6 py-12 text-center text-zinc-400">
+                    <Icon icon="svg-spinners:ring-resize" class="w-6 h-6 mx-auto" />
+                 </td>
+              </tr>
+              <tr v-else-if="filteredDocuments.length === 0">
                 <td colspan="5" class="px-6 py-12 text-center text-zinc-500 font-light">
                   No documents found
                 </td>
               </tr>
               <tr
+                v-else
                 v-for="doc in filteredDocuments"
                 :key="doc.id"
                 class="group hover:bg-white/80 transition-colors"
-                :class="{'bg-zinc-50/50': doc.status === 'processing'}"
               >
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
@@ -335,8 +303,8 @@ onMounted(() => {
                       <Icon icon="hugeicons:file-02" class="w-5 h-5" />
                     </div>
                     <div>
-                      <p class="text-sm font-medium text-zinc-900 group-hover:text-black transition-colors">{{ doc.name }}</p>
-                      <p class="text-xs text-zinc-400">{{ doc.type }} • {{ doc.uploadedAt }}</p>
+                      <p class="text-sm font-medium text-zinc-900 group-hover:text-black transition-colors truncate max-w-[200px]">{{ doc.metadata?.source || doc.filename || doc.id }}</p>
+                      <p class="text-xs text-zinc-400">{{ (doc.metadata?.fileType || 'unk').toUpperCase() }} • {{ doc.created_at || 'Recently' }}</p>
                     </div>
                   </div>
                 </td>
@@ -344,39 +312,26 @@ onMounted(() => {
                   <div class="flex items-center gap-2">
                     <div
                       class="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5"
-                      :class="getStatusBadge(doc.status).color"
+                      :class="getStatusBadge('processed').color"
                     >
-                      <Icon :icon="getStatusBadge(doc.status).icon" class="w-3.5 h-3.5" :class="{'animate-spin': doc.status === 'processing'}" />
-                      {{ getStatusBadge(doc.status).text }}
+                      <Icon :icon="getStatusBadge('processed').icon" class="w-3.5 h-3.5" />
+                      {{ getStatusBadge('processed').text }}
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-sm text-zinc-500 font-light">{{ doc.size }}</td>
+                <td class="px-6 py-4 text-sm text-zinc-500 font-light">{{ formatSize(doc.metadata?.size || 0) }}</td>
                 <td class="px-6 py-4 text-sm text-zinc-500 font-light">
-                  {{ doc.status === 'processed' ? doc.chunks : '-' }}
+                  {{ doc.metadata?.chunks || '-' }}
                 </td>
                 <td class="px-6 py-4 text-right">
                   <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <!-- Actions placeholder -->
                     <button
                       @click="handleView(doc)"
                       class="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors"
-                      title="View content"
+                      title="View"
                     >
                       <Icon icon="hugeicons:view" class="w-4 h-4" />
-                    </button>
-                    <button
-                      @click="handleReprocess(doc)"
-                      class="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors"
-                      title="Reprocess"
-                    >
-                      <Icon icon="hugeicons:refresh" class="w-4 h-4" />
-                    </button>
-                    <button
-                      @click="handleDelete(doc.id)"
-                      class="p-2 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
-                      title="Delete"
-                    >
-                      <Icon icon="hugeicons:delete-02" class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

@@ -28,7 +28,7 @@ if (!getApps().length) {
   console.log('✅ [FIREBASE] Firebase app created')
 } else {
   console.log('🔥 [FIREBASE] Using existing Firebase app')
-  app = getApps()[0]
+  app = getApps()[0] as FirebaseApp
 }
 
 auth = getAuth(app)

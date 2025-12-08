@@ -296,28 +296,36 @@ export const useAuth = () => {
   // Sign out
   const signOut = async () => {
     try {
+      console.log('🔍 [AUTH] signOut called')
       isLoading.value = true
       error.value = null
 
-      // Sign out from Firebase
+      // Sign out from Firebase first
       await firebaseSignOut(auth)
+      console.log('✅ [AUTH] Firebase signOut completed')
 
       // Clear local storage
       localStorage.removeItem('idToken')
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('userData')
+      console.log('✅ [AUTH] localStorage cleared')
 
+      // Clear state
       userData.value = null
       currentUser.value = null
+      console.log('✅ [AUTH] State cleared')
 
-      // Redirect to auth page
-      await router.push('/auth')
+      // Force full page reload to /auth to ensure clean state
+      console.log('🔍 [AUTH] Redirecting to /auth with full reload...')
+      window.location.href = '/auth'
     } catch (err: any) {
-      console.error('Sign out error:', err)
+      console.error('❌ [AUTH] Sign out error:', err)
       error.value = err.message || 'Failed to sign out'
-      throw err
+      // Even if there's an error, force redirect with full reload
+      window.location.href = '/auth'
     } finally {
       isLoading.value = false
+      console.log('✅ [AUTH] signOut completed')
     }
   }
 

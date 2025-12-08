@@ -1,68 +1,56 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, watch, computed } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useChatStore } from '../../../../stores/chat'
+import { useRagApi } from '../../../../composables/useRagApi'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: 'auth'
 })
 
 const route = useRoute()
-const chatId = route.params.id
+const router = useRouter()
+const chatStore = useChatStore()
+const { fetchRagQuery } = useRagApi()
+const { userData } = useAuth()
 
+const chatId = route.params.id as string
 const messageInput = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const isLoading = ref(false)
-const isTyping = ref(false)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
-const user = ref(null) // Add user ref for avatar
 
-// Format timestamp function
-const formatTime = (timestamp: string | Date) => {
-  if (typeof timestamp === 'string') {
-    return timestamp
-  }
-  return new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-}
-
-const chatInfo = ref({
-  title: 'Machine Learning Basics',
-  createdAt: '2 hours ago',
-  messageCount: 12
+// Initialize session
+onMounted(async () => {
+    if (chatId === 'new') {
+        const newId = chatStore.createSession()
+        router.replace(`/dashboard/chat/${newId}`)
+    } else {
+        chatStore.setCurrentSession(chatId)
+        
+        // Check for auto-prompt from new chat page
+        const prompt = route.query.prompt as string
+        if (prompt) {
+            messageInput.value = prompt
+            // Remove query param to clean URL
+            router.replace({ query: undefined })
+            // Wait for session init then send
+            await nextTick()
+            handleSendMessage()
+        }
+    }
+    scrollToBottom()
 })
 
-const messages = ref([
-  {
-    id: 1,
-    type: 'user',
-    content: 'What are the fundamental concepts of machine learning?',
-    timestamp: '10:30 AM',
-  },
-  {
-    id: 2,
-    type: 'assistant',
-    content: 'Machine learning is a subset of artificial intelligence that focuses on developing systems that can learn from and make decisions based on data. The fundamental concepts include:\n\n1. **Supervised Learning**: Training models on labeled data\n2. **Unsupervised Learning**: Finding patterns in unlabeled data\n3. **Features**: Input variables used for predictions\n4. **Training**: Process of teaching the model\n5. **Validation**: Testing model performance\n\nThese concepts form the foundation of most ML applications.',
-    timestamp: '10:30 AM',
-    sources: [
-      { name: 'ML_Fundamentals.pdf', page: 12 },
-      { name: 'AI_Introduction.docx', page: 5 }
-    ]
-  },
-  {
-    id: 3,
-    type: 'user',
-    content: 'Can you explain supervised learning in more detail?',
-    timestamp: '10:32 AM',
-  },
-  {
-    id: 4,
-    type: 'assistant',
-    content: 'Supervised learning is a type of machine learning where the model learns from labeled training data. Here\'s a detailed breakdown:\n\n**Key Components:**\n- Input data (features)\n- Output labels (targets)\n- Training algorithm\n- Model parameters\n\n**Common Algorithms:**\n- Linear Regression\n- Decision Trees\n- Neural Networks\n- Support Vector Machines\n\nThe model learns by finding patterns between inputs and outputs, then uses these patterns to make predictions on new, unseen data.',
-    timestamp: '10:32 AM',
-    sources: [
-      { name: 'Supervised_Learning_Guide.pdf', page: 3 }
-    ]
-  },
-])
+const currentSession = computed(() => chatStore.currentSession)
+const messages = computed(() => currentSession.value?.messages || [])
+const chatTitle = computed(() => currentSession.value?.title || 'New Chat')
+
+// Auto-scroll
+watch(() => messages.value.length, () => {
+    scrollToBottom()
+})
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -72,63 +60,95 @@ const scrollToBottom = () => {
   })
 }
 
+// Format timestamp function
+const formatTime = (timestamp: string | Date | undefined) => {
+  if (!timestamp) return ''
+  if (typeof timestamp === 'string') {
+     // If it's a simple time string like "10:30 AM", return it.
+     // But real data will likely be ISO string.
+     if(timestamp.includes('M') && timestamp.length < 10) return timestamp 
+     return new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  }
+  return new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+}
+
+
 const handleSendMessage = async () => {
   if (!messageInput.value.trim() || isLoading.value) return
 
-  const userMessage = {
-    id: messages.value.length + 1,
-    type: 'user',
-    content: messageInput.value,
-    timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-  }
-
-  messages.value.push(userMessage)
+  const content = messageInput.value
   messageInput.value = ''
+  
+  // Add user message
+  chatStore.addMessage(chatId, {
+      id: Date.now(),
+      type: 'user',
+      content: content,
+      timestamp: new Date()
+  })
+
   isLoading.value = true
   scrollToBottom()
 
-  // Simulate AI response
-  setTimeout(() => {
-    const aiMessage = {
-      id: messages.value.length + 1,
-      type: 'assistant',
-      content: 'This is a simulated response. In production, this would connect to your RAG system with Gemini API to provide contextual answers based on your knowledge base.',
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      sources: [
-        { name: 'Example_Document.pdf', page: 1 }
-      ]
-    }
-    messages.value.push(aiMessage)
-    isLoading.value = false
-    scrollToBottom()
-  }, 1500)
+  try {
+      const response: any = await fetchRagQuery(content, userData.value?.uid || 'anon')
+      
+      // Add assistant message
+      chatStore.addMessage(chatId, {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: response.answer,
+          timestamp: new Date(),
+          sources: response.chunks.map((c: any) => ({
+              name: c.metadata?.source || 'Unknown',
+              page: c.metadata?.page
+          }))
+      })
+
+  } catch (error) {
+      console.error('Failed to get answer:', error)
+      chatStore.addMessage(chatId, {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: 'Sorry, I encountered an error retrieving the information.',
+          timestamp: new Date()
+      })
+  } finally {
+      isLoading.value = false
+      scrollToBottom()
+  }
 }
 
 const handleCopyMessage = (content: string) => {
   navigator.clipboard.writeText(content)
-  console.log('Message copied to clipboard')
 }
 
 const handleRegenerateResponse = () => {
-  console.log('Regenerating response...')
+  // Logic to regenerate could be implemented here
+  // For now, just a placeholder or could re-send last user message
+  const lastUserMsg = messages.value.filter((m: any) => m.type === 'user').pop()
+  if (lastUserMsg) {
+      messageInput.value = lastUserMsg.content
+      handleSendMessage()
+  }
 }
 
-const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
-  console.log(`Feedback for message ${messageId}: ${type}`)
-}
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-[calc(100vh-6rem)]">
     <!-- Page Header -->
-    <div class="mb-8">
-      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">{{ chatInfo.title }}</h1>
-      <p class="text-zinc-500 font-light text-base">{{ chatInfo.messageCount }} messages • {{ chatInfo.createdAt }}</p>
+    <div class="mb-4 flex-shrink-0">
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">{{ chatTitle }}</h1>
+      <p class="text-zinc-500 font-light text-base">{{ messages.length }} messages</p>
     </div>
 
     <!-- Messages Container -->
-    <div class="max-w-3xl pb-32">
-      <div class="space-y-6">
+    <div 
+        ref="messagesContainer"
+        class="flex-1 overflow-y-auto pb-32 scroll-smooth"
+    >
+      <div class="space-y-6 max-w-3xl">
 
         <!-- Messages -->
         <div
@@ -149,8 +169,8 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
               class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center overflow-hidden"
             >
               <img
-                v-if="user?.photoURL"
-                :src="user.photoURL"
+                v-if="userData?.photoUrl"
+                :src="userData.photoUrl"
                 alt="User"
                 class="w-full h-full object-cover"
               />
@@ -173,33 +193,27 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
 
             <!-- Sources if available -->
             <div v-if="message.sources && message.sources.length" class="mt-3 flex flex-wrap gap-2">
-              <div v-for="source in message.sources" :key="source.name" class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-600 hover:border-zinc-300 transition-colors cursor-pointer">
+              <div v-for="(source, idx) in message.sources" :key="idx" class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-600 hover:border-zinc-300 transition-colors cursor-pointer">
                 <Icon icon="hugeicons:file-02" class="w-3.5 h-3.5 text-zinc-400" />
-                <span class="font-medium">{{ source.name }}</span>
-                <span class="text-zinc-400">• p.{{ source.page }}</span>
+                <span class="font-medium max-w-[150px] truncate">{{ source.name }}</span>
+                <span v-if="source.page" class="text-zinc-400">• p.{{ source.page }}</span>
               </div>
             </div>
 
             <!-- Actions -->
             <div v-if="message.type === 'assistant'" class="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Copy">
+              <button @click="handleCopyMessage(message.content)" class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Copy">
                 <Icon icon="hugeicons:copy-01" class="w-4 h-4" />
               </button>
-              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Good">
-                <Icon icon="hugeicons:thumbs-up" class="w-4 h-4" />
-              </button>
-              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Bad">
-                <Icon icon="hugeicons:thumbs-down" class="w-4 h-4" />
-              </button>
-              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Regenerate">
+              <button @click="handleRegenerateResponse" class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Regenerate">
                 <Icon icon="hugeicons:refresh" class="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Typing Indicator -->
-        <div v-if="isTyping" class="flex gap-4">
+        <!-- Loading Indicator -->
+        <div v-if="isLoading" class="flex gap-4">
           <div class="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center">
             <Icon icon="hugeicons:ai-brain-01" class="w-5 h-5 animate-pulse" />
           </div>
@@ -213,13 +227,9 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
     </div>
 
     <!-- Input Area -->
-    <div class="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-transparent pt-8 pb-6 z-30 transition-all duration-300">
-      <div class="max-w-3xl mx-auto" style="padding-left: calc(2rem + var(--removed-left-scroll-gutter, 0px)); padding-right: calc(2rem + var(--removed-right-scroll-gutter, 0px));">
+    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-transparent pt-8 pb-6 z-30 transition-all duration-300">
+      <div class="max-w-3xl mr-auto" :style="{ paddingRight: '2rem' }"> <!-- Adjusted styling for alignment -->
         <div class="bg-white border border-zinc-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-3 flex items-center gap-3">
-          <button class="p-2 rounded-xl hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors flex-shrink-0">
-            <Icon icon="hugeicons:attachment-01" class="w-5 h-5" />
-          </button>
-
           <textarea
             v-model="messageInput"
             rows="1"

@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
   css: ['./app/assets/css/main.css'],
-  modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/image'],
+  modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/image', '@pinia/nuxt'],
   vite: {
     plugins: [
       tailwindcss(),
@@ -13,7 +13,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      ingestionApiUrl: process.env.NUXT_PUBLIC_INGESTION_API_URL || 'https://ingest.nerdie.lol',
+      ingestionServiceUrl: process.env.NUXT_PUBLIC_INGESTION_API_URL || 'https://ingest.nerdie.lol',
+      ragServiceUrl: process.env.NUXT_PUBLIC_RAG_API_URL || 'https://rag.nerdie.lol',
     },
   },
 });

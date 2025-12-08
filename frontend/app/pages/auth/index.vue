@@ -65,7 +65,7 @@ const handleGoogleLogin = async () => {
   <div class="min-h-screen w-full bg-white text-gray-900 flex p-2 md:p-3 lg:p-4 gap-8">
     <div class="hidden lg:relative lg:flex lg:w-1/2 xl:w-5/12 rounded-3xl overflow-hidden bg-orange-100/50">
       <div class="absolute top-8 left-8 z-20">
-        <h1 class="font-['Questrial'] text-2xl font-bold tracking-wider text-white">Nerdie</h1>
+        <h1 class="font-['Questrial'] text-3xl font-bold tracking-tight text-white">Nerdie.</h1>
       </div>
 
       <div class="absolute top-8 right-8 z-20">
@@ -106,7 +106,7 @@ const handleGoogleLogin = async () => {
         <SwiperSlide>
           <div class="h-full w-full relative">
             <img 
-              src="/images/auth-bg.jpg" 
+              src="/images/13.jpg" 
               alt="Auth Background" 
               class="absolute inset-0 w-full h-full object-cover"
             />
@@ -116,7 +116,7 @@ const handleGoogleLogin = async () => {
         <SwiperSlide>
           <div class="h-full w-full relative">
             <img 
-              src="/images/auth-bg.jpg" 
+              src="/images/14.jpg" 
               alt="Auth Background" 
               class="absolute inset-0 w-full h-full object-cover"
             />
@@ -129,7 +129,7 @@ const handleGoogleLogin = async () => {
     <div class="w-full lg:w-1/2 xl:w-7/12 flex items-center justify-center">
       <div class="w-full max-w-md space-y-8">
         <div class="space-y-2 text-center">
-          <h2 class="text-2xl md:text-3xl ins font-black tracking-tight text-gray-900">Welcome to Nerdie</h2>
+          <h2 class="text-2xl md:text-3xl font-['Questrial'] font-black tracking-tight text-gray-900">Welcome to Nerdie.</h2>
           <p class="">Login with google to continue to Nerdie.</p>
         </div>
 
@@ -146,10 +146,7 @@ const handleGoogleLogin = async () => {
             class="w-full bg-black ins hover:opacity-80 transition text-white py-3.5 rounded-full transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <!-- Loading spinner -->
-            <svg v-if="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+            <svg v-if="isLoading" class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from SVG Spinners by Utkarsh Verma - https://github.com/n3r4zzurr0/svg-spinners/blob/main/LICENSE --><g stroke="currentColor"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
 
             <!-- Google icon -->
             <svg v-else class="w-5 h-5" viewBox="0 0 24 24">

@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import { Icon } from '@iconify/vue'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: 'auth'
 })
 
 const { userData, signOut } = useAuth()
@@ -31,7 +32,13 @@ const userEmail = computed(() => {
 })
 
 const handleLogout = async () => {
-  await signOut()
+  console.log('🔍 [PROFILE PAGE] Logout clicked')
+  try {
+    await signOut()
+    console.log('✅ [PROFILE PAGE] Logout successful')
+  } catch (error) {
+    console.error('❌ [PROFILE PAGE] Logout error:', error)
+  }
 }
 </script>
 

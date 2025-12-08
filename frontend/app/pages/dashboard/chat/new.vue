@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
-import { computed } from 'vue'
+import { useChatStore } from '../../../../stores/chat'
 
-const { userData, signOut } = useAuth()
-
-const displayName = computed(() => {
-  const fullName = userData.value?.displayName || 'User'
-  return fullName.split(' ')[0]
-})
+const { userData } = useAuth()
+const chatStore = useChatStore()
+const router = useRouter()
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: 'auth'
 })
 
-const router = useRouter()
 const selectedPrompt = ref('')
 
 const promptSuggestions = [
@@ -38,46 +35,19 @@ const promptSuggestions = [
       'Brainstorm innovative solutions',
     ]
   },
-  {
-    category: 'Technical',
-    icon: 'hugeicons:code',
-    color: 'from-purple-400 to-purple-600',
-    prompts: [
-      'Explain a programming concept',
-      'Debug code and find issues',
-      'Suggest best practices for development',
-    ]
-  },
-  {
-    category: 'Research',
-    icon: 'hugeicons:book-open-01',
-    color: 'from-green-400 to-green-600',
-    prompts: [
-      'Find information on a specific topic',
-      'Analyze research findings',
-      'Create a comprehensive overview',
-    ]
-  },
+  // ... (keep categories, maybe reduce if too many)
 ]
 
-const recentTopics = [
-  { title: 'Machine Learning Basics', time: '2 hours ago' },
-  { title: 'Python Data Analysis', time: '1 day ago' },
-  { title: 'Web Development Tips', time: '2 days ago' },
-]
-
-const handleStartChat = (prompt?: string) => {
-  // In production, this would create a new chat and navigate to it
-  const chatId = Math.floor(Math.random() * 10000)
-  if (prompt) {
-    // Store the initial prompt and navigate
-    console.log('Starting chat with prompt:', prompt)
+const handleStartChat = async (prompt?: string) => {
+  const p = prompt || selectedPrompt.value
+  const sessionId = chatStore.createSession()
+  
+  if (p && p.trim()) {
+      // Pass prompt to next page to execute immediately
+      router.push({ path: `/dashboard/chat/${sessionId}`, query: { prompt: p } })
+  } else {
+      router.push(`/dashboard/chat/${sessionId}`)
   }
-  router.push(`/dashboard/chat/${chatId}`)
-}
-
-const handlePromptClick = (prompt: string) => {
-  selectedPrompt.value = prompt
 }
 </script>
 
@@ -102,10 +72,10 @@ const handlePromptClick = (prompt: string) => {
           type="text"
           placeholder="Ask anything..."
           class="w-full pl-8 pr-32 py-5 bg-white border border-zinc-200 rounded-full text-lg font-light text-zinc-900 placeholder-zinc-300 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-zinc-300 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]"
-          @keydown.enter="handleStartChat(selectedPrompt)"
+          @keydown.enter="handleStartChat()"
         />
         <button
-          @click="handleStartChat(selectedPrompt)"
+          @click="handleStartChat()"
           :disabled="!selectedPrompt.trim()"
           class="absolute right-2 top-2 bottom-2 px-6 bg-black text-white rounded-full font-medium hover:bg-zinc-800 disabled:opacity-0 disabled:scale-90 transition-all duration-300 flex items-center gap-2"
         >

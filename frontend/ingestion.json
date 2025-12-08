@@ -185,6 +185,31 @@
                 ]
             }
         },
+        "/ingest/documents": {
+            "get": {
+                "tags": [
+                    "Ingestion"
+                ],
+                "summary": "List Documents",
+                "description": "Get list of all ingested documents for the current user.",
+                "operationId": "list_documents_ingest_documents_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
         "/vector/insert": {
             "post": {
                 "tags": [

@@ -62,7 +62,14 @@ const toggleMobileSidebar = () => {
 }
 
 const handleLogout = async () => {
-  await signOut()
+  console.log('🔍 [DASHBOARD LAYOUT] Logout clicked')
+  showLogoutDropdown.value = false
+  try {
+    await signOut()
+    console.log('✅ [DASHBOARD LAYOUT] Logout successful')
+  } catch (error) {
+    console.error('❌ [DASHBOARD LAYOUT] Logout error:', error)
+  }
 }
 
 // Get user initials
