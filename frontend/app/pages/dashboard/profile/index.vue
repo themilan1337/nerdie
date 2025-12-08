@@ -52,7 +52,7 @@ const handleLogout = async () => {
       
       <div class="relative flex flex-col md:flex-row items-center gap-8">
         <div class="relative group/avatar cursor-pointer">
-          <div class="w-24 h-24 rounded-full bg-zinc-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-lg group-hover/avatar:scale-105 transition-transform duration-300">
+          <div class="w-24 h-24 rounded-full bg-zinc-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-lg transition-transform duration-300">
             <img
               v-if="userData?.photoUrl"
               :src="userData.photoUrl"
@@ -61,13 +61,13 @@ const handleLogout = async () => {
             />
             <span v-else class="text-2xl font-light text-zinc-900">{{ userInitials }}</span>
           </div>
-          <div class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-black text-white flex items-center justify-center border-2 border-white shadow-md group-hover/avatar:scale-110 transition-transform duration-300">
+          <div class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-black text-white flex items-center justify-center border-2 border-white shadow-md transition-transform duration-300">
             <Icon icon="hugeicons:camera-01" class="w-4 h-4" />
           </div>
         </div>
 
         <div class="flex-1 text-center md:text-left space-y-1">
-          <h2 class="text-2xl font-medium text-zinc-900">{{ displayName }}</h2>
+          <h2 class="text-2xl font-['Questrial'] text-zinc-900">{{ displayName }}</h2>
           <p class="text-zinc-500 font-light">{{ userEmail }}</p>
         </div>
       </div>
@@ -77,7 +77,7 @@ const handleLogout = async () => {
     <div class="grid grid-cols-1 gap-6">
       <!-- Personal Info -->
       <div class="glass-panel p-6 rounded-[2rem] space-y-6">
-        <h3 class="text-lg font-medium text-zinc-900 flex items-center gap-2">
+        <h3 class="text-lg font-['Questrial'] text-zinc-900 flex items-center gap-2">
           <Icon icon="hugeicons:user" class="w-5 h-5 text-zinc-400" />
           Personal Information
         </h3>
@@ -104,7 +104,7 @@ const handleLogout = async () => {
     <div class="glass-panel p-6 rounded-[2rem]">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-medium text-red-500 mb-1">Sign Out</h3>
+          <h3 class="text-lg font-['Questrial'] text-red-500 mb-1">Sign Out</h3>
           <p class="text-sm text-zinc-400 font-light">Securely log out of your account on this device.</p>
         </div>
         <button

@@ -1,9 +1,35 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Icon } from '@iconify/vue'
 
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
+})
+
+const { userData } = useAuth()
+
+// Get time-based greeting
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+
+  if (hour >= 5 && hour < 12) {
+    return 'Good morning'
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good afternoon'
+  } else if (hour >= 17 && hour < 22) {
+    return 'Good evening'
+  } else {
+    return 'Good night'
+  }
+})
+
+// Get user's first name
+const firstName = computed(() => {
+  if (userData.value?.displayName) {
+    return userData.value.displayName.split(' ')[0]
+  }
+  return 'User'
 })
 
 const stats = [
@@ -39,8 +65,8 @@ const quickActions = [
   <div>
     <!-- Page Header -->
     <div class="mb-12">
-      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">Overview</h1>
-      <p class="text-zinc-500 font-light text-base">Here's your daily intelligence briefing.</p>
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">{{ greeting }}, {{ firstName }}.</h1>
+      <p class="text-zinc-500 font-light text-base">Here's your daily intelligence briefing</p>
     </div>
 
     <!-- Stats Grid -->
