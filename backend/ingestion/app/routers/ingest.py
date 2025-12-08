@@ -156,13 +156,17 @@ async def ingest_pdf(
         if graph_data["relations"]:
             await firestore_service.save_relations(user_id, graph_data["relations"])
         
-        # 7. Save document metadata
+        # 7. Generate Summary
+        summary = await processing_service.summarize_text(text)
+
+        # 8. Save document metadata
         await firestore_service.save_document_metadata(
             user_id=user_id,
             filename=file.filename,
             file_url=file_url,
             file_type="pdf",
-            chunks_count=len(chunks)
+            chunks_count=len(chunks),
+            summary=summary
         )
         
         return {

@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     FIREBASE_PROJECT_ID: str = os.getenv("FIREBASE_PROJECT_ID", "")
     FIREBASE_API_KEY: str = os.getenv("FIREBASE_API_KEY", "")
     FIREBASE_CREDENTIALS: str = "/app/firebase-credentials.json"
-    FIREBASE_STORAGE_BUCKET: str = "nerdie-85d0a.appspot.com"
+    FIREBASE_STORAGE_BUCKET: str = "nerdie-85d0a.firebasestorage.app"
 
     # RAG Service Configuration
     RAG_SERVICE_URL: str = os.getenv("RAG_SERVICE_URL", "http://rag:8001")

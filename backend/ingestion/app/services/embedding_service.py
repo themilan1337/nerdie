@@ -18,7 +18,8 @@ class EmbeddingService:
                 model=self.model,
                 content=text,
                 task_type="retrieval_document",
-                title="Embedding of text chunk"
+                title="Embedding of text chunk",
+                output_dimensionality=768  # Use 768 dimensions for storage efficiency
             )
             return result['embedding']
         except Exception as e:
