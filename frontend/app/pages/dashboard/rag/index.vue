@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useIngestionApi } from '../../../../composables/useIngestionApi'
+
+console.log('[RAG PAGE] Script setup started')
 
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
 })
+
+console.log('[RAG PAGE] Page meta defined')
 
 // Real API
 const { fetchDocuments, uploadDocument } = useIngestionApi()
@@ -107,8 +111,10 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
 }
 
 onMounted(() => {
+    console.log('[RAG PAGE] Component mounted, loading documents...')
     loadDocs()
     window.addEventListener('beforeunload', handleBeforeUnload)
+    console.log('[RAG PAGE] Event listeners attached')
 })
 
 onBeforeUnmount(() => {

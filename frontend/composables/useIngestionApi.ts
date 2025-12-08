@@ -2,6 +2,12 @@ export const useIngestionApi = () => {
     const config = useRuntimeConfig()
     const baseUrl = config.public.ingestionServiceUrl
 
+    console.log('[useIngestionApi] Initialized with baseUrl:', baseUrl)
+
+    if (!baseUrl) {
+        console.error('[useIngestionApi] ERROR: ingestionServiceUrl is not defined in runtime config!')
+    }
+
     const uploadDocument = async (file: File) => {
         const formData = new FormData()
         formData.append('file', file)
