@@ -295,3 +295,20 @@ async def upload_file_legacy(
         return await ingest_image(file, credentials, db)
     else:
         raise HTTPException(status_code=400, detail="Unsupported file type. Use PDF or image (JPEG/PNG/WebP)")
+
+
+@router.get("/documents")
+async def list_documents(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    """
+    Get list of all ingested documents for the current user.
+    """
+    try:
+        user_id = await get_current_user(credentials)
+        documents = await firestore_service.get_user_documents(user_id)
+        return {"documents": documents}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
