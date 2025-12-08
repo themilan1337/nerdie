@@ -72,7 +72,7 @@ services:
     labels:
       - "traefik.enable=true"
       # HTTP Router
-      - "traefik.http.routers.auth.rule=Host(`auth.api.nerdie.lol`)"
+      - "traefik.http.routers.auth.rule=Host(`auth.nerdie.lol`)"
       - "traefik.http.routers.auth.entrypoints=websecure"
       - "traefik.http.routers.auth.tls=true"
       - "traefik.http.routers.auth.tls.certresolver=letsencrypt"
@@ -108,7 +108,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.rag.rule=Host(`rag.api.nerdie.lol`)"
+      - "traefik.http.routers.rag.rule=Host(`rag.nerdie.lol`)"
       - "traefik.http.routers.rag.entrypoints=websecure"
       - "traefik.http.routers.rag.tls=true"
       - "traefik.http.routers.rag.tls.certresolver=letsencrypt"
@@ -145,7 +145,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ingest.rule=Host(`ingest.api.nerdie.lol`)"
+      - "traefik.http.routers.ingest.rule=Host(`inges.nerdie.lol`)"
       - "traefik.http.routers.ingest.entrypoints=websecure"
       - "traefik.http.routers.ingest.tls=true"
       - "traefik.http.routers.ingest.tls.certresolver=letsencrypt"
