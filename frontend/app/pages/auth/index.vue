@@ -16,19 +16,46 @@ const { signInWithGoogle, isLoading, error, handleRedirectResult } = useAuth()
 
 // Handle redirect result when page loads
 onMounted(async () => {
+  console.log('=' .repeat(80))
+  console.log('🔍 [AUTH PAGE] onMounted called')
+  console.log('🔍 [AUTH PAGE] Current URL:', window.location.href)
+  console.log('🔍 [AUTH PAGE] Path:', window.location.pathname)
+  console.log('🔍 [AUTH PAGE] Search params:', window.location.search)
+  console.log('🔍 [AUTH PAGE] Hash:', window.location.hash)
+  console.log('=' .repeat(80))
+
   try {
+    console.log('🔍 [AUTH PAGE] Calling handleRedirectResult()...')
     await handleRedirectResult()
-  } catch (err) {
-    console.error('Failed to handle redirect:', err)
+    console.log('✅ [AUTH PAGE] handleRedirectResult() completed successfully')
+  } catch (err: any) {
+    console.error('=' .repeat(80))
+    console.error('❌ [AUTH PAGE] Failed to handle redirect!')
+    console.error('❌ [AUTH PAGE] Error:', err)
+    console.error('❌ [AUTH PAGE] Error message:', err.message)
+    console.error('❌ [AUTH PAGE] Error stack:', err.stack)
+    console.error('=' .repeat(80))
   }
 })
 
 const handleGoogleLogin = async () => {
+  console.log('=' .repeat(80))
+  console.log('🔍 [AUTH PAGE] handleGoogleLogin called (button clicked)')
+  console.log('🔍 [AUTH PAGE] Current time:', new Date().toISOString())
+  console.log('=' .repeat(80))
+
   try {
+    console.log('🔍 [AUTH PAGE] Calling signInWithGoogle()...')
     await signInWithGoogle()
+    console.log('⚠️ [AUTH PAGE] Code after signInWithGoogle executed')
+    console.log('⚠️ [AUTH PAGE] This should not happen if redirect is working')
     // User will be redirected to Google
   } catch (err: any) {
-    console.error('Login failed:', err)
+    console.error('=' .repeat(80))
+    console.error('❌ [AUTH PAGE] Login failed!')
+    console.error('❌ [AUTH PAGE] Error:', err)
+    console.error('❌ [AUTH PAGE] Error message:', err.message)
+    console.error('=' .repeat(80))
     // Error is already stored in the error ref
   }
 }
