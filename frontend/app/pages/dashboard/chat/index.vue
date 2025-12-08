@@ -97,13 +97,11 @@ const deleteChat = (chatId: string, event: Event) => {
 
 <template>
   <div>
-    <!-- Page Header -->
     <div class="mb-12">
       <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">Chat History</h1>
       <p class="text-zinc-500 font-light text-base">View and manage your conversations</p>
     </div>
 
-    <!-- Search and Filters -->
       <div class="flex items-center mb-8 gap-4 w-full md:w-auto">
         <div class="relative flex-1 md:w-80 group">
           <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
@@ -140,34 +138,13 @@ const deleteChat = (chatId: string, event: Event) => {
           </div>
           
           <div class="flex-1 min-w-0 pt-1">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-lg font-medium text-zinc-900 truncate pr-4 group-hover:text-black transition-colors">{{ chat.title }}</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-['Questrial'] text-zinc-900 truncate pr-4 group-hover:text-black transition-colors">{{ chat.title }}</h3>
               <span class="text-sm text-zinc-400 font-light">{{ formatDate(chat.timestamp) }}</span>
             </div>
 
             <p class="text-zinc-500 line-clamp-2 font-light group-hover:text-zinc-600 transition-colors pr-12">{{ chat.lastMessage }}</p>
-
-            <div class="flex items-center gap-4 mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-              <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-600">
-                {{ chat.messageCount }} messages
-              </span>
-              <span v-if="chat.model" class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-600 capitalize">
-                {{ chat.model }}
-              </span>
-            </div>
           </div>
-
-          <div class="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
-            <Icon icon="hugeicons:arrow-right-01" class="w-6 h-6 text-zinc-400 group-hover:text-black" />
-          </div>
-
-          <button
-            @click.prevent="deleteChat(chat.id)"
-            class="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-200 text-zinc-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10"
-            title="Delete conversation"
-          >
-            <Icon icon="hugeicons:delete-02" class="w-4 h-4" />
-          </button>
         </NuxtLink>
       </TransitionGroup>
     </div>
