@@ -1,6 +1,6 @@
 """
 Authentication Service module.
-Business logic layer for authentication operations.
+Business logic layer for Google Firebase authentication.
 """
 
 from typing import Dict, Any
@@ -8,61 +8,22 @@ from ..core import firebase_client
 from ..core.firebase_client import FirebaseAuthError
 
 
-async def signup_user(email: str, password: str) -> Dict[str, Any]:
+async def authenticate_with_google(id_token: str) -> Dict[str, Any]:
     """
-    Create a new user account.
-    
+    Authenticate user with Google OAuth via Firebase.
+
     Args:
-        email: User email address
-        password: User password
-        
+        id_token: Firebase ID token obtained after Google sign-in on client
+
     Returns:
-        Dict containing uid, email, idToken, refreshToken
+        Dict containing uid, email, displayName, photoUrl, idToken, refreshToken
     """
-    result = await firebase_client.create_user(email, password)
+    result = await firebase_client.verify_and_get_user(id_token)
     return {
         "uid": result["uid"],
-        "email": result["email"],
-        "idToken": result["idToken"],
-        "refreshToken": result["refreshToken"],
-        "expiresIn": result["expiresIn"]
-    }
-
-
-async def login_user(email: str, password: str) -> Dict[str, Any]:
-    """
-    Authenticate user with email and password.
-    
-    Args:
-        email: User email address
-        password: User password
-        
-    Returns:
-        Dict containing idToken, refreshToken, uid, email
-    """
-    result = await firebase_client.sign_in(email, password)
-    return {
-        "uid": result["uid"],
-        "email": result["email"],
-        "idToken": result["idToken"],
-        "refreshToken": result["refreshToken"],
-        "expiresIn": result["expiresIn"]
-    }
-
-
-async def refresh_user_token(refresh_token: str) -> Dict[str, Any]:
-    """
-    Refresh user's ID token using refresh token.
-    
-    Args:
-        refresh_token: Firebase refresh token
-        
-    Returns:
-        Dict containing new idToken, refreshToken, uid
-    """
-    result = await firebase_client.refresh_token(refresh_token)
-    return {
-        "uid": result["uid"],
+        "email": result.get("email"),
+        "displayName": result.get("displayName"),
+        "photoUrl": result.get("photoUrl"),
         "idToken": result["idToken"],
         "refreshToken": result["refreshToken"],
         "expiresIn": result["expiresIn"]

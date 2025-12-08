@@ -75,122 +75,64 @@ def get_user(uid: str) -> auth.UserRecord:
     return auth.get_user(uid)
 
 
-async def create_user(email: str, password: str) -> Dict[str, Any]:
+async def verify_and_get_user(id_token: str) -> Dict[str, Any]:
     """
-    Create a new user in Firebase Auth via REST API.
-    Returns user data including idToken.
-    
+    Verify Google OAuth ID token and get/create user in Firebase.
+
+    This function:
+    1. Verifies the Firebase ID token (which contains Google auth info)
+    2. Gets or creates the user in Firebase Auth
+    3. Generates custom token for the user
+    4. Exchanges custom token for ID token and refresh token
+
     Args:
-        email: User email
-        password: User password
-        
+        id_token: Firebase ID token from client after Google sign-in
+
     Returns:
-        Dict containing uid, email, idToken, refreshToken
+        Dict containing uid, email, displayName, photoUrl, idToken, refreshToken
     """
-    settings = get_settings()
-    
-    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={settings.firebase_api_key}"
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url,
-            json={
-                "email": email,
-                "password": password,
-                "returnSecureToken": True
+    try:
+        # Verify the ID token
+        decoded_token = verify_token(id_token)
+        uid = decoded_token["uid"]
+
+        # Get user record
+        user_record = get_user(uid)
+
+        # Generate a custom token for this user
+        custom_token = auth.create_custom_token(uid)
+
+        # Exchange custom token for ID token and refresh token
+        settings = get_settings()
+        url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key={settings.firebase_api_key}"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                json={
+                    "token": custom_token.decode("utf-8"),
+                    "returnSecureToken": True
+                }
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                error_message = data.get("error", {}).get("message", "Token exchange failed")
+                raise FirebaseAuthError(error_message)
+
+            return {
+                "uid": uid,
+                "email": user_record.email,
+                "displayName": user_record.display_name,
+                "photoUrl": user_record.photo_url,
+                "idToken": data.get("idToken"),
+                "refreshToken": data.get("refreshToken"),
+                "expiresIn": data.get("expiresIn", "3600")
             }
-        )
-        
-        data = response.json()
-        
-        if response.status_code != 200:
-            error_message = data.get("error", {}).get("message", "Unknown error")
-            raise FirebaseAuthError(error_message)
-        
-        return {
-            "uid": data.get("localId"),
-            "email": data.get("email"),
-            "idToken": data.get("idToken"),
-            "refreshToken": data.get("refreshToken"),
-            "expiresIn": data.get("expiresIn")
-        }
 
-
-async def sign_in(email: str, password: str) -> Dict[str, Any]:
-    """
-    Sign in user with email and password via Firebase REST API.
-    
-    Args:
-        email: User email
-        password: User password
-        
-    Returns:
-        Dict containing idToken, refreshToken, uid, email
-    """
-    settings = get_settings()
-    
-    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={settings.firebase_api_key}"
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url,
-            json={
-                "email": email,
-                "password": password,
-                "returnSecureToken": True
-            }
-        )
-        
-        data = response.json()
-        
-        if response.status_code != 200:
-            error_message = data.get("error", {}).get("message", "Unknown error")
-            raise FirebaseAuthError(error_message)
-        
-        return {
-            "uid": data.get("localId"),
-            "email": data.get("email"),
-            "idToken": data.get("idToken"),
-            "refreshToken": data.get("refreshToken"),
-            "expiresIn": data.get("expiresIn")
-        }
-
-
-async def refresh_token(refresh_token: str) -> Dict[str, Any]:
-    """
-    Refresh ID token using refresh token via Firebase REST API.
-    
-    Args:
-        refresh_token: Firebase refresh token
-        
-    Returns:
-        Dict containing new idToken, refreshToken, uid
-    """
-    settings = get_settings()
-    
-    url = f"https://securetoken.googleapis.com/v1/token?key={settings.firebase_api_key}"
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url,
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": refresh_token
-            }
-        )
-        
-        data = response.json()
-        
-        if response.status_code != 200:
-            error_message = data.get("error", {}).get("message", "Unknown error")
-            raise FirebaseAuthError(error_message)
-        
-        return {
-            "uid": data.get("user_id"),
-            "idToken": data.get("id_token"),
-            "refreshToken": data.get("refresh_token"),
-            "expiresIn": data.get("expires_in")
-        }
+    except Exception as e:
+        raise FirebaseAuthError(str(e))
 
 
 class FirebaseAuthError(Exception):

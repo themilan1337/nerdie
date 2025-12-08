@@ -1,11 +1,11 @@
 """
 Authentication Router module.
-REST API endpoints for authentication operations.
+REST API endpoints for Google Firebase authentication.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 from ..services import auth_service
@@ -22,35 +22,17 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # ============ Request/Response Models ============
 
-class SignupRequest(BaseModel):
-    """Request model for user signup."""
-    email: EmailStr
-    password: str = Field(..., min_length=6)
-
-
-class LoginRequest(BaseModel):
-    """Request model for user login."""
-    email: EmailStr
-    password: str
-
-
-class RefreshRequest(BaseModel):
-    """Request model for token refresh."""
-    refreshToken: str
+class GoogleAuthRequest(BaseModel):
+    """Request model for Google OAuth authentication."""
+    idToken: str
 
 
 class AuthResponse(BaseModel):
     """Response model for authentication operations."""
     uid: str
-    email: str
-    idToken: str
-    refreshToken: str
-    expiresIn: str
-
-
-class RefreshResponse(BaseModel):
-    """Response model for token refresh."""
-    uid: str
+    email: Optional[str]
+    displayName: Optional[str]
+    photoUrl: Optional[str]
     idToken: str
     refreshToken: str
     expiresIn: str
@@ -108,98 +90,45 @@ async def get_current_user(
 # ============ Endpoints ============
 
 @router.post(
-    "/signup",
+    "/google",
     response_model=AuthResponse,
     responses={
-        400: {"model": ErrorResponse},
-        409: {"model": ErrorResponse}
+        401: {"model": ErrorResponse},
+        400: {"model": ErrorResponse}
     },
-    summary="Create new user account",
-    description="Register a new user with email and password"
+    summary="Authenticate with Google",
+    description="Authenticate user with Google OAuth ID token from Firebase"
 )
-async def signup(request: SignupRequest):
+async def google_auth(request: GoogleAuthRequest):
     """
-    Create a new user account in Firebase Auth.
-    
-    Returns uid, email, idToken, and refreshToken.
+    Authenticate user with Google OAuth.
+
+    Client should:
+    1. Use Firebase Auth SDK to sign in with Google (signInWithPopup/signInWithRedirect)
+    2. Get the ID token from Firebase Auth
+    3. Send the ID token to this endpoint
+
+    Returns uid, email, displayName, photoUrl, and new tokens.
     """
     try:
-        result = await auth_service.signup_user(
-            email=request.email,
-            password=request.password
+        result = await auth_service.authenticate_with_google(
+            id_token=request.idToken
         )
         return result
     except FirebaseAuthError as e:
-        status_code = status.HTTP_400_BAD_REQUEST
-        if e.error_code == "EmailAlreadyExists":
-            status_code = status.HTTP_409_CONFLICT
-        
         raise HTTPException(
-            status_code=status_code,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail={
                 "error": e.error_code,
                 "message": e.message
             }
         )
-
-
-@router.post(
-    "/login",
-    response_model=AuthResponse,
-    responses={
-        401: {"model": ErrorResponse}
-    },
-    summary="User login",
-    description="Authenticate user with email and password"
-)
-async def login(request: LoginRequest):
-    """
-    Authenticate user and return tokens.
-    
-    Returns idToken, refreshToken, uid, and email.
-    """
-    try:
-        result = await auth_service.login_user(
-            email=request.email,
-            password=request.password
-        )
-        return result
-    except FirebaseAuthError as e:
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "error": e.error_code,
-                "message": "Email or password is incorrect"
-            }
-        )
-
-
-@router.post(
-    "/refresh",
-    response_model=RefreshResponse,
-    responses={
-        401: {"model": ErrorResponse}
-    },
-    summary="Refresh access token",
-    description="Get a new ID token using refresh token"
-)
-async def refresh(request: RefreshRequest):
-    """
-    Refresh the ID token using a refresh token.
-    
-    Returns new idToken and refreshToken.
-    """
-    try:
-        result = await auth_service.refresh_user_token(
-            refresh_token=request.refreshToken
-        )
-        return result
-    except FirebaseAuthError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={
-                "error": e.error_code,
-                "message": "Invalid or expired refresh token"
+                "error": "AuthError",
+                "message": str(e)
             }
         )
 
