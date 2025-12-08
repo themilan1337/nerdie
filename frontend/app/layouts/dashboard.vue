@@ -129,7 +129,7 @@ const userEmail = computed(() => {
             >
               <div
                 v-if="showLogoutDropdown"
-                class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg overflow-hidden"
               >
                 <NuxtLink
                   to="/dashboard/profile"

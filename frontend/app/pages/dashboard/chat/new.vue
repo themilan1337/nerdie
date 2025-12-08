@@ -76,20 +76,12 @@ const handlePromptClick = (prompt: string) => {
 <template>
   <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 to-white">
     <div class="max-w-5xl mx-auto px-6 py-12">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-400 to-pink-500 rounded-3xl mb-6 shadow-lg">
-          <Sparkles class="w-10 h-10 text-white" />
-        </div>
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 ins mb-4">
-          Start a New Chat
+      <div class=" mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 ins">
+          How can I help you?
         </h1>
-        <p class="text-lg text-gray-500 max-w-2xl mx-auto">
-          Ask anything and get answers powered by your knowledge base with RAG + Gemini AI
-        </p>
       </div>
 
-      <!-- Main Input -->
       <div class="mb-12">
         <div class="relative">
           <textarea
@@ -97,7 +89,7 @@ const handlePromptClick = (prompt: string) => {
             @keydown.enter.ctrl="handleStartChat(selectedPrompt)"
             placeholder="What would you like to know?"
             rows="4"
-            class="w-full px-6 py-4 bg-white border-2 border-gray-200 rounded-2xl text-lg resize-none focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all shadow-sm hover:shadow-md"
+            class="w-full px-6 py-4 bg-white border-2 border-gray-200 rounded-2xl text-lg resize-none focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
           />
           <button
             @click="handleStartChat(selectedPrompt)"
@@ -105,7 +97,7 @@ const handlePromptClick = (prompt: string) => {
             :class="[
               'absolute bottom-4 right-4 px-6 py-2.5 rounded-xl font-medium ins transition-all flex items-center gap-2',
               selectedPrompt.trim()
-                ? 'bg-black text-white hover:bg-gray-800 shadow-md hover:shadow-lg'
+                ? 'bg-black text-white hover:bg-gray-800'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             ]"
           >
@@ -125,7 +117,7 @@ const handlePromptClick = (prompt: string) => {
           <div
             v-for="category in promptSuggestions"
             :key="category.category"
-            class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all"
+            class="bg-white rounded-2xl border border-gray-200 p-6 transition-all"
           >
             <div class="flex items-center gap-3 mb-4">
               <div :class="['w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br', category.color]">
@@ -156,7 +148,7 @@ const handlePromptClick = (prompt: string) => {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <button
           @click="handleStartChat('Summarize the main points from my documents')"
-          class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white hover:shadow-xl transition-all group"
+          class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white transition-all group"
         >
           <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
             <BookOpen class="w-6 h-6" />
@@ -167,7 +159,7 @@ const handlePromptClick = (prompt: string) => {
 
         <button
           @click="handleStartChat('Help me understand complex topics')"
-          class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white hover:shadow-xl transition-all group"
+          class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white transition-all group"
         >
           <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
             <Calculator class="w-6 h-6" />
@@ -178,7 +170,7 @@ const handlePromptClick = (prompt: string) => {
 
         <button
           @click="handleStartChat('Search my knowledge base')"
-          class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white hover:shadow-xl transition-all group"
+          class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white transition-all group"
         >
           <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
             <Globe class="w-6 h-6" />

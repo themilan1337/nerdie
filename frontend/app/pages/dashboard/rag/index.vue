@@ -197,7 +197,7 @@ onMounted(() => {
     <Transition name="slide-down">
       <div
         v-if="showSuccessNotification"
-        class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3 max-w-md"
+        class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-2xl flex items-center gap-3 max-w-md"
       >
         <CheckCircle class="w-5 h-5 flex-shrink-0" />
         <p class="flex-1 text-sm font-medium">{{ successMessage }}</p>
@@ -211,7 +211,7 @@ onMounted(() => {
     <Transition name="slide-down">
       <div
         v-if="showErrorNotification"
-        class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3 max-w-md"
+        class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-2xl flex items-center gap-3 max-w-md"
       >
         <AlertCircle class="w-5 h-5 flex-shrink-0" />
         <p class="flex-1 text-sm font-medium">{{ errorMessage }}</p>

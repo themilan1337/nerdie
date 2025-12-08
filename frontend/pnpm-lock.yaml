@@ -26,6 +26,9 @@ importers:
       firebase:
         specifier: ^12.6.0
         version: 12.6.0
+      hugeicons-vue:
+        specifier: ^0.0.1
+        version: 0.0.1(vue@3.5.25(typescript@5.9.3))
       lucide-vue-next:
         specifier: ^0.556.0
         version: 0.556.0(vue@3.5.25(typescript@5.9.3))
@@ -3033,6 +3036,11 @@ packages:
 
   httpxy@0.1.7:
     resolution: {integrity: sha512-pXNx8gnANKAndgga5ahefxc++tJvNL87CXoRwxn1cJE2ZkWEojF3tNfQIEhZX/vfpt+wzeAzpUI4qkediX1MLQ==}
+
+  hugeicons-vue@0.0.1:
+    resolution: {integrity: sha512-Wywz+Ki3zRVKEFdZ26sxZpoLMqdZl25kBB6ufJKE2aoQQz1SGPeSIE9KnWi8ctp5JiF3Lmt4oayH1vMXQebITw==}
+    peerDependencies:
+      vue: '>=3.0.1'
 
   human-signals@5.0.0:
     resolution: {integrity: sha512-AXcZb6vzzrFAUE61HnN4mpLqd/cSIwNQjtNWR0euPm6y0iqx3G4gOXaIDdtdDwZmhwe82LA6+zinmW4UBWVePQ==}
@@ -8066,6 +8074,10 @@ snapshots:
       - supports-color
 
   httpxy@0.1.7: {}
+
+  hugeicons-vue@0.0.1(vue@3.5.25(typescript@5.9.3)):
+    dependencies:
+      vue: 3.5.25(typescript@5.9.3)
 
   human-signals@5.0.0: {}
 
