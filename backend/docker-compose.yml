@@ -10,7 +10,6 @@ services:
     env_file:
       - ./auth/.env
     volumes:
-      # Mount Firebase credentials file
       - ./auth/firebase-credentials.json:/app/firebase-credentials.json:ro
     restart: unless-stopped
     networks:
@@ -41,7 +40,30 @@ services:
     depends_on:
       - postgres
 
-  # ============ PostgreSQL with pgvector (for RAG) ============
+  # ============ RAG Service ============
+  rag:
+    build:
+      context: ./rag_service
+      dockerfile: Dockerfile
+    container_name: nerdie-rag
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./rag_service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - nerdie-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ============ PostgreSQL with pgvector ============
   postgres:
     image: pgvector/pgvector:pg16
     container_name: nerdie-postgres
