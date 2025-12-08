@@ -15,11 +15,13 @@
     "@nuxt/image": "2.0.0",
     "@tailwindcss/vite": "^4.1.17",
     "eslint": "^9.39.1",
+    "firebase": "^12.6.0",
     "lucide-vue-next": "^0.556.0",
     "nuxt": "^4.2.1",
     "swiper": "^12.0.3",
     "tailwindcss": "^4.1.17",
     "vue": "^3.5.25",
     "vue-router": "^4.6.3"
-  }
+  },
+  "packageManager": "pnpm@10.17.1+sha512.17c560fca4867ae9473a3899ad84a88334914f379be46d455cbf92e5cf4b39d34985d452d2583baf19967fa76cb5c17bc9e245529d0b98745721aa7200ecaf7a"
 }

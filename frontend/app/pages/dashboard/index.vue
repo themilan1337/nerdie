@@ -2,7 +2,8 @@
 import { MessageSquare, Database, TrendingUp, Clock, FileText, Zap } from 'lucide-vue-next'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: 'auth'
 })
 
 const stats = [

@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Home, MessageSquare, Database, User, Plus, Menu, X } from 'lucide-vue-next'
+import { ref, onMounted, computed } from 'vue'
+import { Home, MessageSquare, Database, User, Plus, Menu, X, LogOut } from 'lucide-vue-next'
 
 const isSidebarOpen = ref(true)
+const showLogoutDropdown = ref(false)
+
+const { userData, signOut, initAuthListener } = useAuth()
+
+// Initialize auth listener
+onMounted(() => {
+  initAuthListener()
+})
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -15,6 +23,32 @@ const navigation = [
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
+
+const handleLogout = async () => {
+  await signOut()
+}
+
+// Get user initials
+const userInitials = computed(() => {
+  if (userData.value?.displayName) {
+    return userData.value.displayName
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2)
+  }
+  return 'U'
+})
+
+// Get display name or email
+const displayName = computed(() => {
+  return userData.value?.displayName || 'User'
+})
+
+const userEmail = computed(() => {
+  return userData.value?.email || 'user@email.com'
+})
 </script>
 
 <template>
@@ -48,18 +82,51 @@ const toggleSidebar = () => {
 
         <!-- User section -->
         <div class="p-3 border-t border-gray-200 flex-shrink-0">
-          <NuxtLink
-            to="/dashboard/profile"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-all"
-          >
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center flex-shrink-0">
-              <span class="text-white font-bold text-xs ins">U</span>
+          <div class="relative">
+            <button
+              @click="showLogoutDropdown = !showLogoutDropdown"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-all w-full"
+            >
+              <img
+                v-if="userData?.photoUrl"
+                :src="userData.photoUrl"
+                :alt="displayName"
+                class="w-8 h-8 rounded-full flex-shrink-0"
+              />
+              <div
+                v-else
+                class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center flex-shrink-0"
+              >
+                <span class="text-white font-bold text-xs ins">{{ userInitials }}</span>
+              </div>
+              <div class="flex-1 min-w-0 text-left">
+                <p class="text-sm font-medium text-gray-900 truncate ins">{{ displayName }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ userEmail }}</p>
+              </div>
+            </button>
+
+            <!-- Logout dropdown -->
+            <div
+              v-if="showLogoutDropdown"
+              class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            >
+              <NuxtLink
+                to="/dashboard/profile"
+                class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-all text-sm text-gray-700"
+                @click="showLogoutDropdown = false"
+              >
+                <User class="w-4 h-4" />
+                <span>Profile</span>
+              </NuxtLink>
+              <button
+                @click="handleLogout"
+                class="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-50 transition-all text-sm text-red-600"
+              >
+                <LogOut class="w-4 h-4" />
+                <span>Logout</span>
+              </button>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate ins">User</p>
-              <p class="text-xs text-gray-500 truncate">user@email.com</p>
-            </div>
-          </NuxtLink>
+          </div>
         </div>
       </div>
     </aside>
