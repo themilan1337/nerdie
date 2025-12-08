@@ -71,12 +71,12 @@ async def generate_embedding(text: str) -> List[float]:
 async def generate_query_embedding(query: str) -> List[float]:
     """
     Generate embedding for a search query.
-    
+
     Uses task_type="retrieval_query" for better query-document matching.
-    
+
     Args:
         query: Search query text
-        
+
     Returns:
         List of 768 floats representing the query embedding
     """
@@ -84,7 +84,8 @@ async def generate_query_embedding(query: str) -> List[float]:
         result = genai.embed_content(
             model=f"models/{settings.gemini_embedding_model}",
             content=query,
-            task_type="retrieval_query"  # Optimized for query matching
+            task_type="retrieval_query",  # Optimized for query matching
+            output_dimensionality=768  # Match the stored embedding dimensions
         )
         return result['embedding']
     except Exception as e:
