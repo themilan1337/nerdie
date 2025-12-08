@@ -69,8 +69,7 @@ const quickActions = [
 
     <!-- Quick Actions -->
     <div class="mb-12">
-      <h2 class="text-lg font-medium text-zinc-900 mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-zinc-900 rounded-full"></span>
+      <h2 class="text-lg font-['Questrial'] text-zinc-900 mb-6 flex items-center gap-2">
         Quick Actions
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -97,7 +96,7 @@ const quickActions = [
       <div class="lg:col-span-2">
         <div class="glass-panel rounded-3xl p-8 h-full">
           <div class="flex items-center justify-between mb-8">
-            <h2 class="text-lg font-medium text-zinc-900">Recent Conversations</h2>
+            <h2 class="text-lg font-['Questrial'] text-zinc-900">Recent Conversations</h2>
             <NuxtLink to="/dashboard/chat" class="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
               View all
             </NuxtLink>
@@ -133,7 +132,7 @@ const quickActions = [
         <!-- Recent Docs -->
         <div class="glass-panel rounded-3xl p-8">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-medium text-zinc-900">Knowledge Base</h2>
+            <h2 class="text-lg font-['Questrial'] text-zinc-900">Knowledge Base</h2>
             <NuxtLink to="/dashboard/rag" class="p-2 rounded-full hover:bg-zinc-100 transition-colors">
               <Icon icon="hugeicons:plus-sign" class="w-4 h-4 text-zinc-900" />
             </NuxtLink>
@@ -151,38 +150,6 @@ const quickActions = [
               <div class="flex-1 min-w-0">
                 <h3 class="text-sm font-medium text-zinc-700 truncate group-hover:text-zinc-900">{{ doc.name }}</h3>
                 <p class="text-xs text-zinc-400">{{ doc.size }} • {{ doc.uploadedAt }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Minimal System Status -->
-        <div class="bg-zinc-900 rounded-3xl p-8 text-white relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-zinc-800 rounded-full blur-3xl -mr-16 -mt-16 opacity-50 group-hover:opacity-100 transition-opacity duration-700"></div>
-          
-          <div class="relative z-10">
-            <div class="flex items-start justify-between mb-8">
-              <div>
-                <h3 class="text-lg font-medium mb-1">System Status</h3>
-                <p class="text-zinc-400 text-sm">All systems operational</p>
-              </div>
-              <div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse"></div>
-            </div>
-
-            <div class="space-y-4">
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-zinc-400">RAG Engine</span>
-                <span class="flex items-center gap-2">
-                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                  Active
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-zinc-400">Gemini Pro</span>
-                <span class="flex items-center gap-2">
-                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                  Connected
-                </span>
               </div>
             </div>
           </div>

@@ -76,8 +76,7 @@ const userEmail = computed(() => {
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
     >
-      <div class="h-full flex flex-col p-6">
-        <!-- Logo -->
+      <div class="h-full flex flex-col transition-all duration-300" :class="isSidebarExpanded ? 'p-6' : 'py-6 px-3'">
         <!-- Logo -->
         <div class="h-12 flex items-center mb-8 transition-all duration-300" :class="isSidebarExpanded ? 'px-2' : 'justify-center'">
           <h1 v-if="isSidebarExpanded" class="font-['Questrial'] text-4xl font-bold tracking-tight text-zinc-900 whitespace-nowrap">nerdie.</h1>
@@ -85,19 +84,21 @@ const userEmail = computed(() => {
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 space-y-1">
+        <nav class="flex-1 space-y-2 flex flex-col" :class="{ 'items-center': !isSidebarExpanded }">
           <NuxtLink
             v-for="item in navigation"
             :key="item.name"
             :to="item.href"
-            class="flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-all duration-300 group relative overflow-hidden"
-            :class="{ 'justify-center !px-0': !isSidebarExpanded }"
+            class="flex items-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-all duration-300 group relative overflow-hidden"
+            :class="[
+              isSidebarExpanded ? 'gap-3 px-4 py-3 rounded-2xl w-full' : 'rounded-full w-12 h-12 justify-center',
+            ]"
             active-class="!bg-black !text-white shadow-lg shadow-black/5"
           >
             <Icon :icon="item.icon" class="w-5 h-5 flex-shrink-0" />
             <span
-              class="font-medium text-sm tracking-wide whitespace-nowrap overflow-hidden transition-all duration-300"
-              :class="isSidebarExpanded ? 'opacity-100 w-auto ml-3' : 'opacity-0 w-0 hidden'"
+              v-if="isSidebarExpanded"
+              class="font-medium text-sm tracking-wide whitespace-nowrap"
             >
               {{ item.name }}
             </span>
@@ -105,13 +106,16 @@ const userEmail = computed(() => {
         </nav>
 
         <!-- User section -->
-        <div class="mt-auto pt-6 border-t border-zinc-200/50">
+        <div class="mt-auto pt-6 border-t border-zinc-200/50" :class="{ 'flex justify-center': !isSidebarExpanded }">
           <div class="relative" ref="dropdownRef">
             <button
               @click="showLogoutDropdown = !showLogoutDropdown"
-              class="flex items-center gap-3 p-2 rounded-2xl hover:bg-zinc-100 transition-all duration-300 w-full group"
+              class="flex items-center p-2 rounded-2xl hover:bg-zinc-100 transition-all duration-300 group"
+              :class="[
+                isSidebarExpanded ? 'gap-3 w-full' : 'justify-center w-12 h-12 rounded-full'
+              ]"
             >
-              <div class="relative">
+              <div class="relative flex-shrink-0">
                 <img
                   v-if="userData?.photoUrl"
                   :src="userData.photoUrl"
@@ -120,20 +124,23 @@ const userEmail = computed(() => {
                 />
                 <div
                   v-else
-                  class="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center ring-2 ring-white shadow-sm flex-shrink-0"
+                  class="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center ring-2 ring-white shadow-sm"
                 >
                   <span class="font-medium text-xs">{{ userInitials }}</span>
                 </div>
               </div>
-              
-              <div class="flex-1 min-w-0 text-left transition-all duration-300" :class="{ 'w-0 opacity-0 hidden': !isSidebarExpanded }">
+
+              <div
+                v-if="isSidebarExpanded"
+                class="flex-1 min-w-0 text-left"
+              >
                 <p class="text-sm font-semibold text-zinc-900 truncate group-hover:text-black transition-colors">{{ displayName }}</p>
               </div>
-              
-              <Icon 
+
+              <Icon
                 v-if="isSidebarExpanded"
-                icon="hugeicons:more-horizontal" 
-                class="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" 
+                icon="hugeicons:more-horizontal"
+                class="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0"
               />
             </button>
 
