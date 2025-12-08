@@ -57,11 +57,10 @@ const conversations = computed(() => {
       </NuxtLink>
     </div>
 
-    <!-- Chat List -->
     <div class="flex-1 min-h-0 bg-white border border-zinc-100 rounded-3xl overflow-hidden flex flex-col">
-      <div v-if="conversations.length === 0" class="flex-1 flex flex-col items-center justify-center text-zinc-400">
+      <div v-if="conversations.length === 0" class="flex-1 flex my-16 flex-col items-center justify-center text-zinc-400">
           <Icon icon="hugeicons:bubble-chat" class="w-12 h-12 mb-3 opacity-50" />
-          <p>No conversations found</p>
+          <p class="font-['Questrial']">No conversations found</p>
       </div>
       <div v-else class="overflow-y-auto flex-1 p-2 space-y-2">
         <NuxtLink
