@@ -78,8 +78,9 @@ const handleGoogleLogin = () => {
 
     <div class="w-full lg:w-1/2 xl:w-7/12 flex items-center justify-center">
       <div class="w-full max-w-md space-y-8">
-        <div class="space-y-2">
-          <h2 class="text-4xl md:text-5xl ins font-black tracking-tight text-gray-900">Welcome to Nerdie</h2>
+        <div class="space-y-2 text-center">
+          <h2 class="text-2xl md:text-3xl ins font-black tracking-tight text-gray-900">Welcome to Nerdie</h2>
+          <p class="">Login with google to continue to Nerdie.</p>
         </div>
 
         <div class="space-y-5">
