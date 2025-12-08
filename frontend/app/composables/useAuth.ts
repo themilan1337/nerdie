@@ -76,20 +76,30 @@ export const useAuth = () => {
 
   // Handle redirect result after Google sign-in
   const handleRedirectResult = async () => {
+    console.log('🔍 [AUTH] handleRedirectResult called')
     try {
       isLoading.value = true
+      console.log('🔍 [AUTH] Getting redirect result from Firebase...')
       const result = await getRedirectResult(auth)
+
+      console.log('🔍 [AUTH] Redirect result:', result)
 
       if (!result) {
         // No redirect result, user just loaded the page normally
+        console.log('ℹ️ [AUTH] No redirect result found (normal page load)')
         isLoading.value = false
         return
       }
 
+      console.log('✅ [AUTH] Redirect result found! User:', result.user.email)
+
       // Step 1: Get the Firebase ID token
+      console.log('🔍 [AUTH] Getting ID token...')
       const idToken = await result.user.getIdToken()
+      console.log('✅ [AUTH] Got ID token:', idToken.substring(0, 20) + '...')
 
       // Step 2: Send token to backend for verification
+      console.log('🔍 [AUTH] Sending token to backend:', AUTH_API_URL)
       const response = await fetch(`${AUTH_API_URL}/auth/google`, {
         method: 'POST',
         headers: {
@@ -98,25 +108,32 @@ export const useAuth = () => {
         body: JSON.stringify({ idToken })
       })
 
+      console.log('🔍 [AUTH] Backend response status:', response.status)
+
       if (!response.ok) {
         const errorData = await response.json()
+        console.error('❌ [AUTH] Backend error:', errorData)
         throw new Error(errorData.message || 'Failed to authenticate with backend')
       }
 
       const data: UserData = await response.json()
+      console.log('✅ [AUTH] Backend response:', data)
 
       // Step 3: Store tokens and user data
       userData.value = data
       localStorage.setItem('idToken', data.idToken)
       localStorage.setItem('refreshToken', data.refreshToken)
       localStorage.setItem('userData', JSON.stringify(data))
+      console.log('✅ [AUTH] Tokens stored in localStorage')
 
       // Step 4: Redirect to dashboard
+      console.log('🔍 [AUTH] Redirecting to dashboard...')
       await router.push('/dashboard')
+      console.log('✅ [AUTH] Redirected to dashboard')
 
       return data
     } catch (err: any) {
-      console.error('Redirect result error:', err)
+      console.error('❌ [AUTH] Redirect result error:', err)
       error.value = err.message || 'Failed to complete sign in'
       throw err
     } finally {
