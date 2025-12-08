@@ -146,154 +146,129 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
 
         <!-- Messages -->
         <div
-          v-for="message in messages"
+          v-for="(message, index) in messages"
           :key="message.id"
-          :class="[
-            'flex gap-4',
-            message.type === 'user' ? 'justify-end' : 'justify-start'
-          ]"
+          class="group flex gap-6 max-w-4xl mx-auto opacity-0 animate-[slideUp_0.4s_ease-out_forwards]"
+          :style="{ animationDelay: `${index * 0.1}s` }"
         >
-          <!-- Assistant Avatar -->
-          <div
-            v-if="message.type === 'assistant'"
-            class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0"
-          >
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-          </div>
-
-          <!-- Message Content -->
-          <div :class="['max-w-2xl', message.type === 'user' ? 'order-first' : '']">
+          <!-- Avatar -->
+          <div class="flex-shrink-0 mt-1">
             <div
-              :class="[
-                'rounded-2xl px-5 py-3',
-                message.type === 'user'
-                  ? 'bg-black text-white'
-                  : 'bg-white border border-gray-200'
-              ]"
+              v-if="message.role === 'assistant'"
+              class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shadow-md"
             >
-              <p class="text-sm leading-relaxed whitespace-pre-wrap" v-html="message.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')"></p>
-
-              <!-- Sources -->
-              <div v-if="message.type === 'assistant' && message.sources" class="mt-4 pt-4 border-t border-gray-200">
-                <p class="text-xs font-medium text-gray-500 mb-2">Sources:</p>
-                <div class="flex flex-wrap gap-2">
-                  <div
-                    v-for="(source, idx) in message.sources"
-                    :key="idx"
-                    class="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg text-xs text-gray-600"
-                  >
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    {{ source.name }} (p.{{ source.page }})
-                  </div>
-                </div>
-              </div>
+              <Icon icon="hugeicons:ai-brain-01" class="w-4 h-4" />
             </div>
-
-            <!-- Message Actions -->
-            <div class="flex items-center gap-2 mt-2 px-2">
-              <span class="text-xs text-gray-400">{{ message.timestamp }}</span>
-
-              <div v-if="message.type === 'assistant'" class="flex items-center gap-1 ml-auto">
-                <button
-                  @click="handleCopyMessage(message.content)"
-                  class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Copy"
-                >
-                  <Icon icon="hugeicons:copy-01" class="w-3.5 h-3.5 text-gray-400" />
-                </button>
-                <button
-                  @click="handleFeedback(message.id, 'positive')"
-                  class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Good response"
-                >
-                  <Icon icon="hugeicons:thumbs-up" class="w-3.5 h-3.5 text-gray-400" />
-                </button>
-                <button
-                  @click="handleFeedback(message.id, 'negative')"
-                  class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Bad response"
-                >
-                  <Icon icon="hugeicons:thumbs-down" class="w-3.5 h-3.5 text-gray-400" />
-                </button>
-                <button
-                  @click="handleRegenerateResponse"
-                  class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Regenerate"
-                >
-                  <Icon icon="hugeicons:refresh" class="w-3.5 h-3.5 text-gray-400" />
-                </button>
-              </div>
+            <div
+              v-else
+              class="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center"
+            >
+              <img
+                v-if="user?.photoURL"
+                :src="user.photoURL"
+                alt="User"
+                class="w-full h-full rounded-full object-cover"
+              />
+              <span v-else class="text-xs font-medium text-zinc-600">ME</span>
             </div>
           </div>
 
-          <!-- User Avatar -->
-          <div
-            v-if="message.type === 'user'"
-            class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center flex-shrink-0"
-          >
-            <span class="text-white font-bold text-sm ins">U</span>
+          <!-- Content -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-medium text-zinc-900">
+                {{ message.role === 'assistant' ? 'Nerdie AI' : 'You' }}
+              </span>
+              <span class="text-xs text-zinc-300">{{ formatTime(message.timestamp) }}</span>
+            </div>
+            
+            <div 
+              class="text-zinc-600 leading-relaxed font-light prose prose-zinc max-w-none"
+              :class="{'bg-zinc-50 p-4 rounded-2xl rounded-tl-sm': message.role === 'user'}"
+            >
+             {{ message.content }}
+            </div>
+
+            <!-- Actions -->
+            <div v-if="message.role === 'assistant'" class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button class="action-btn" title="Copy">
+                <Icon icon="hugeicons:copy-01" class="w-3.5 h-3.5" />
+              </button>
+              <button class="action-btn" title="Good response">
+                <Icon icon="hugeicons:thumbs-up" class="w-3.5 h-3.5" />
+              </button>
+              <button class="action-btn" title="Bad response">
+                <Icon icon="hugeicons:thumbs-down" class="w-3.5 h-3.5" />
+              </button>
+              <button class="action-btn" title="Regenerate">
+                <Icon icon="hugeicons:refresh" class="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
-
-        <!-- Loading Indicator -->
-        <div v-if="isLoading" class="flex gap-4">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-          </div>
-          <div class="bg-white border border-gray-200 rounded-2xl px-5 py-3">
-            <div class="flex gap-1">
-              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
-            </div>
-          </div>
+      </div>
+      
+      <!-- Typinng Indicator -->
+      <div v-if="isTyping" class="flex gap-6 max-w-4xl mx-auto">
+        <div class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shadow-lg">
+          <Icon icon="hugeicons:ai-brain-01" class="w-4 h-4 animate-pulse" />
+        </div>
+        <div class="flex items-center gap-1.5 h-8">
+          <div class="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+          <div class="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+          <div class="w-1.5 h-1.5 bg-zinc-300 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
         </div>
       </div>
     </div>
 
     <!-- Input Area -->
-    <div class="border-t border-gray-200 bg-white px-6 py-4">
-      <div class="max-w-4xl mx-auto">
-        <div class="flex items-end gap-3">
-          <button class="p-3 rounded-xl hover:bg-gray-100 transition-colors">
-            <Icon icon="hugeicons:attachment" class="w-5 h-5 text-gray-600" />
+    <div class="flex-shrink-0 pt-6 pb-2 max-w-4xl mx-auto w-full z-10 bg-zinc-50">
+      <div class="relative group">
+        <div class="absolute inset-0 bg-gradient-to-r from-zinc-200 to-zinc-100 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+        <div class="relative bg-white border border-zinc-200 shadow-[0_8px_40px_-10px_rgba(0,0,0,0.05)] rounded-[2rem] p-2 flex items-end gap-2 transition-all duration-300 hover:shadow-[0_12px_50px_-10px_rgba(0,0,0,0.08)] hover:border-zinc-300">
+          
+          <button class="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 hover:text-zinc-900 transition-colors">
+            <Icon icon="hugeicons:attachment-01" class="w-5 h-5" />
           </button>
 
-          <div class="flex-1">
-            <textarea
-              v-model="messageInput"
-              @keydown.enter.prevent="handleSendMessage"
-              placeholder="Ask a question..."
-              rows="1"
-              class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-              style="max-height: 200px;"
-            />
-          </div>
+          <textarea
+            v-model="newMessage"
+            rows="1"
+            placeholder="Ask anything..."
+            class="flex-1 py-3 px-2 bg-transparent border-none focus:ring-0 text-zinc-900 placeholder-zinc-400 resize-none max-h-32 font-light"
+            @keydown.enter.prevent="sendMessage"
+            ref="textareaRef"
+          ></textarea>
 
           <button
-            @click="handleSendMessage"
-            :disabled="!messageInput.trim() || isLoading"
-            :class="[
-              'p-3 rounded-xl transition-all',
-              messageInput.trim() && !isLoading
-                ? 'bg-black text-white hover:bg-gray-800'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            ]"
+            @click="sendMessage"
+            :disabled="!newMessage.trim() && !isTyping"
+            class="p-3 rounded-full bg-black text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
           >
             <Icon icon="hugeicons:sent" class="w-5 h-5" />
           </button>
         </div>
-
-        <p class="text-xs text-gray-400 mt-2 text-center">
-          Press Enter to send • Responses are generated using RAG + Gemini
-        </p>
+        <div class="text-center mt-3">
+          <p class="text-[10px] text-zinc-400 font-medium tracking-wide uppercase opacity-70">
+            Nerdie AI can make mistakes. Check important info.
+          </p>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

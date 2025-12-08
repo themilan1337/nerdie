@@ -10,10 +10,23 @@
 }
 
 @layer base {
+    body {
+        @apply bg-zinc-50 text-zinc-900 antialiased selection:bg-black selection:text-white;
+    }
 
     button:not(:disabled),
     [role="button"]:not(:disabled) {
         cursor: pointer;
+    }
+}
+
+@layer components {
+    .glass-panel {
+        @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+    }
+    
+    .text-balance {
+        text-wrap: balance;
     }
 }
 

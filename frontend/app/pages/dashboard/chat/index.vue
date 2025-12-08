@@ -98,110 +98,92 @@ const deleteChat = (chatId: string, event: Event) => {
     <!-- Search and Filters -->
     <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
       <div class="flex flex-col md:flex-row gap-4">
-        <!-- Search -->
-        <div class="flex-1 relative">
-          <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-2">Conversations.</h1>
+        <p class="text-zinc-500 font-light">History of your dialogues with the AI.</p>
+      </div>
+
+      <div class="flex items-center gap-4 w-full md:w-auto">
+        <div class="relative flex-1 md:w-80 group">
+          <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search chats..."
-            class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+            placeholder="Search conversations..."
+            class="w-full pl-12 pr-4 py-3 bg-white border border-zinc-200 rounded-full text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all shadow-sm group-hover:shadow-md"
           />
         </div>
-
-        <!-- Filter Dropdown -->
-        <div class="relative">
-          <Icon icon="hugeicons:filter" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select
-            v-model="selectedFilter"
-            class="pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none cursor-pointer min-w-[200px]"
-          >
-            <option v-for="option in filterOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>
+        
+        <NuxtLink
+          to="/dashboard/chat/new"
+          class="flex-shrink-0 w-12 h-12 bg-black text-white rounded-full flex items-center justify-center hover:scale-105 hover:shadow-lg transition-all duration-300"
+        >
+          <Icon icon="hugeicons:plus-sign" class="w-6 h-6" />
+        </NuxtLink>
       </div>
     </div>
 
-    <!-- Chat List -->
-    <div v-if="filteredChats.length > 0" class="space-y-4">
-      <div
-        v-for="chat in filteredChats"
-        :key="chat.id"
-        @click="openChat(chat.id)"
-        class="bg-white rounded-2xl border border-gray-200 p-6 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
-      >
-        <div class="flex items-start justify-between">
-          <div class="flex items-start gap-4 flex-1">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Icon icon="hugeicons:bubble-chat" class="w-6 h-6 text-white" />
+    <!-- Active/Recent Chats -->
+    <div v-if="filteredChats.length > 0" class="grid grid-cols-1 gap-4">
+      <TransitionGroup name="list" appear>
+        <NuxtLink
+          v-for="chat in filteredChats"
+          :key="chat.id"
+          :to="`/dashboard/chat/${chat.id}`"
+          class="group glass-panel rounded-3xl p-6 hover:border-zinc-300 transition-all duration-300 flex items-start gap-6 relative overflow-hidden"
+        >
+          <!-- Hover effect background -->
+          <div class="absolute inset-0 bg-zinc-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+
+          <div class="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center flex-shrink-0 group-hover:bg-black transition-colors duration-500">
+            <Icon icon="hugeicons:bubble-chat" class="w-6 h-6 text-zinc-500 group-hover:text-white transition-colors duration-500" />
+          </div>
+          
+          <div class="flex-1 min-w-0 pt-1">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-lg font-medium text-zinc-900 truncate pr-4 group-hover:text-black transition-colors">{{ chat.title }}</h3>
+              <span class="text-sm text-zinc-400 font-light">{{ formatDate(chat.updatedAt) }}</span>
             </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-lg font-bold text-gray-900 ins mb-1 group-hover:text-black">
-                {{ chat.title }}
-              </h3>
-              <p class="text-gray-600 text-sm mb-2 truncate">
-                {{ chat.lastMessage }}
-              </p>
-              <div class="flex items-center gap-4 text-xs text-gray-500">
-                <span class="flex items-center gap-1">
-                  <Icon icon="hugeicons:clock-01" class="w-3 h-3" />
-                  {{ chat.timestamp }}
-                </span>
-                <span>{{ chat.messageCount }} messages</span>
-              </div>
+            
+            <p class="text-zinc-500 line-clamp-2 font-light group-hover:text-zinc-600 transition-colors pr-12">{{ chat.preview }}</p>
+            
+            <div class="flex items-center gap-4 mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+              <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-600">
+                {{ chat.messagesCount }} messages
+              </span>
+              <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-600 capitalize">
+                {{ chat.model }}
+              </span>
             </div>
           </div>
+
+          <div class="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
+            <Icon icon="hugeicons:arrow-right-01" class="w-6 h-6 text-zinc-400 group-hover:text-black" />
+          </div>
+
           <button
-            @click="deleteChat(chat.id, $event)"
-            class="p-2 rounded-lg hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-            title="Delete chat"
+            @click.prevent="deleteChat(chat.id)"
+            class="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-200 text-zinc-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10"
+            title="Delete conversation"
           >
-            <Icon icon="hugeicons:delete-02" class="w-5 h-5 text-red-600" />
+            <Icon icon="hugeicons:delete-02" class="w-4 h-4" />
           </button>
-        </div>
-      </div>
+        </NuxtLink>
+      </TransitionGroup>
     </div>
 
-    <!-- Empty State -->
-    <div v-else class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-      <div class="w-20 h-20 bg-gray-100 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-        <Icon icon="hugeicons:bubble-chat" class="w-10 h-10 text-gray-400" />
+    <div v-else class="text-center py-24">
+      <div class="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Icon icon="hugeicons:bubble-chat" class="w-10 h-10 text-zinc-300" />
       </div>
-      <h3 class="text-xl font-bold text-gray-900 ins mb-2">
-        {{ chats.length === 0 ? 'No chats yet' : 'No chats found' }}
-      </h3>
-      <p class="text-gray-500 mb-6">
-        {{ chats.length === 0
-          ? 'Start a new conversation to get started'
-          : 'Try adjusting your search or filters'
-        }}
-      </p>
-      <button
-        v-if="chats.length === 0"
-        @click="createNewChat"
-        class="px-6 py-3 bg-black text-white rounded-full font-medium ins hover:bg-gray-800 transition-colors inline-flex items-center gap-2"
+      <h3 class="text-xl font-medium text-zinc-900 mb-2">No conversations found</h3>
+      <p class="text-zinc-500 font-light mb-8 max-w-sm mx-auto">Start a new chat to begin interacting with the AI assistant.</p>
+      <NuxtLink
+        to="/dashboard/chat/new"
+        class="inline-flex items-center gap-2 px-8 py-3 bg-black text-white rounded-full hover:bg-zinc-800 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
       >
         <Icon icon="hugeicons:plus-sign" class="w-5 h-5" />
-        Start Your First Chat
-      </button>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-        <p class="text-sm text-blue-100 mb-1">Total Chats</p>
-        <p class="text-3xl font-bold ins">{{ chats.length }}</p>
-      </div>
-      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
-        <p class="text-sm text-purple-100 mb-1">Total Messages</p>
-        <p class="text-3xl font-bold ins">{{ chats.reduce((sum, c) => sum + c.messageCount, 0) }}</p>
-      </div>
-      <div class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl p-6 text-white">
-        <p class="text-sm text-pink-100 mb-1">Active Conversations</p>
-        <p class="text-3xl font-bold ins">{{ chats.length }}</p>
-      </div>
+        <span class="font-medium">Start New Chat</span>
+      </NuxtLink>
     </div>
   </div>
 </template>

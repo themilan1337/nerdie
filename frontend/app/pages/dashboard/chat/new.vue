@@ -74,170 +74,107 @@ const handlePromptClick = (prompt: string) => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 to-white">
-    <div class="max-w-5xl mx-auto px-6 py-12">
-      <div class=" mb-12">
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 ins">
-          How can I help you?
-        </h1>
+  <div class="max-w-4xl mx-auto py-12 px-6">
+    <!-- Header -->
+    <div class="text-center mb-16 space-y-4">
+      <div class="w-20 h-20 bg-black text-white rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-zinc-200 mb-8 transform transition-transform hover:scale-105 duration-500">
+        <Icon icon="hugeicons:ai-brain-01" class="w-10 h-10" />
       </div>
+      <h1 class="text-5xl font-['Questrial'] font-light tracking-tight text-zinc-900">
+        Good morning, Milan.
+      </h1>
+      <p class="text-xl text-zinc-400 font-light">
+        What shall we explore today?
+      </p>
+    </div>
 
-      <div class="mb-12">
-        <div class="relative">
-          <textarea
-            v-model="selectedPrompt"
-            @keydown.enter.ctrl="handleStartChat(selectedPrompt)"
-            placeholder="What would you like to know?"
-            rows="4"
-            class="w-full px-6 py-4 bg-white border-2 border-gray-200 rounded-2xl text-lg resize-none focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-          />
-          <button
-            @click="handleStartChat(selectedPrompt)"
-            :disabled="!selectedPrompt.trim()"
-            :class="[
-              'absolute bottom-4 right-4 px-6 py-2.5 rounded-xl font-medium ins transition-all flex items-center gap-2',
-              selectedPrompt.trim()
-                ? 'bg-black text-white hover:bg-gray-800'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            ]"
-          >
-            <Icon icon="hugeicons:bubble-chat" class="w-4 h-4" />
-            Start Chat
-          </button>
-        </div>
-        <p class="text-sm text-gray-400 mt-3 text-center">
-          Press Ctrl + Enter to send, or click the button
-        </p>
-      </div>
-
-      <!-- Prompt Suggestions -->
-      <div class="mb-12">
-        <h2 class="text-xl font-bold text-gray-900 ins mb-6">Suggested Prompts</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div
-            v-for="category in promptSuggestions"
-            :key="category.category"
-            class="bg-white rounded-2xl border border-gray-200 p-6 transition-all"
-          >
-            <div class="flex items-center gap-3 mb-4">
-              <div :class="['w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br', category.color]">
-                <Icon :icon="category.icon" class="w-5 h-5 text-white" />
-              </div>
-              <h3 class="font-bold text-gray-900 ins text-lg">{{ category.category }}</h3>
-            </div>
-            <div class="space-y-2">
-              <button
-                v-for="(prompt, idx) in category.prompts"
-                :key="idx"
-                @click="handlePromptClick(prompt)"
-                class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-sm text-gray-700 transition-all group"
-              >
-                <div class="flex items-center justify-between">
-                  <span>{{ prompt }}</span>
-                  <svg class="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Start Templates -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <!-- Search/Input Area -->
+    <div class="relative max-w-2xl mx-auto mb-20 group">
+      <div class="absolute inset-0 bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
+      <div class="relative">
+        <input
+          v-model="selectedPrompt"
+          type="text"
+          placeholder="Ask anything..."
+          class="w-full pl-8 pr-32 py-5 bg-white border border-zinc-200 rounded-full text-lg font-light text-zinc-900 placeholder-zinc-300 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-zinc-300 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]"
+          @keydown.enter="handleStartChat(selectedPrompt)"
+        />
         <button
-          @click="handleStartChat('Summarize the main points from my documents')"
-          class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white transition-all group"
+          @click="handleStartChat(selectedPrompt)"
+          :disabled="!selectedPrompt.trim()"
+          class="absolute right-2 top-2 bottom-2 px-6 bg-black text-white rounded-full font-medium hover:bg-zinc-800 disabled:opacity-0 disabled:scale-90 transition-all duration-300 flex items-center gap-2"
         >
-          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <Icon icon="hugeicons:book-open-01" class="w-6 h-6" />
-          </div>
-          <h3 class="font-bold ins text-lg mb-2">Quick Summary</h3>
-          <p class="text-sm text-blue-100">Get key insights from your documents</p>
-        </button>
-
-        <button
-          @click="handleStartChat('Help me understand complex topics')"
-          class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white transition-all group"
-        >
-          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <Icon icon="hugeicons:calculator-01" class="w-6 h-6" />
-          </div>
-          <h3 class="font-bold ins text-lg mb-2">Deep Analysis</h3>
-          <p class="text-sm text-purple-100">Explore topics in detail</p>
-        </button>
-
-        <button
-          @click="handleStartChat('Search my knowledge base')"
-          class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white transition-all group"
-        >
-          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <Icon icon="hugeicons:globe-01" class="w-6 h-6" />
-          </div>
-          <h3 class="font-bold ins text-lg mb-2">Knowledge Search</h3>
-          <p class="text-sm text-green-100">Find specific information</p>
+          <span>Start</span>
+          <Icon icon="hugeicons:arrow-right-01" class="w-4 h-4" />
         </button>
       </div>
+    </div>
 
-      <!-- Recent Topics -->
-      <div v-if="recentTopics.length > 0" class="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 class="text-xl font-bold text-gray-900 ins mb-4">Continue Recent Conversations</h2>
-        <div class="space-y-3">
-          <button
-            v-for="(topic, idx) in recentTopics"
-            :key="idx"
-            @click="handleStartChat(topic.title)"
-            class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all group"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
-                <Icon icon="hugeicons:bubble-chat" class="w-5 h-5 text-gray-600" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-semibold text-gray-900 ins">{{ topic.title }}</h3>
-                <p class="text-sm text-gray-500">{{ topic.time }}</p>
-              </div>
+    <!-- Categories Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
+      <div
+        v-for="category in promptSuggestions"
+        :key="category.category"
+        class="group glass-panel rounded-[2rem] p-8 hover:border-zinc-300 transition-all duration-500 hover:-translate-y-1 relative overflow-hidden"
+      >
+        <div class="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 translate-x-4 group-hover:translate-x-0 transition-all duration-500">
+          <Icon :icon="category.icon" class="w-32 h-32 text-black" />
+        </div>
+
+        <div class="relative z-10">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-zinc-50 flex items-center justify-center group-hover:bg-black transition-colors duration-500">
+              <Icon :icon="category.icon" class="w-6 h-6 text-zinc-900 group-hover:text-white transition-colors duration-500" />
             </div>
-            <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+            <h3 class="text-lg font-medium text-zinc-900">{{ category.category }}</h3>
+          </div>
+
+          <div class="space-y-3">
+            <button
+              v-for="prompt in category.prompts"
+              :key="prompt"
+              @click="handleStartChat(prompt)"
+              class="w-full text-left p-3 rounded-xl hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-all text-sm font-light group/btn flex items-center justify-between"
+            >
+              <span>{{ prompt }}</span>
+              <Icon icon="hugeicons:arrow-right-01" class="w-4 h-4 opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all" />
+            </button>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Features Info -->
-      <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="text-center p-6">
-          <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h3 class="font-bold text-gray-900 ins mb-1">Fast Responses</h3>
-          <p class="text-sm text-gray-500">Powered by Gemini AI</p>
-        </div>
+    <!-- Quick Features -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <button
+        @click="handleStartChat('Summarize the main points from my documents')"
+        class="group p-6 rounded-3xl bg-zinc-50 hover:bg-zinc-900 transition-colors duration-500 text-left relative overflow-hidden"
+      >
+        <div class="absolute top-4 right-4 w-2 h-2 rounded-full bg-zinc-300 group-hover:bg-zinc-700 transition-colors"></div>
+        <Icon icon="hugeicons:book-open-01" class="w-8 h-8 text-zinc-900 group-hover:text-white mb-4 transition-colors" />
+        <h3 class="font-medium text-zinc-900 group-hover:text-white mb-1 transition-colors">Quick Summary</h3>
+        <p class="text-sm text-zinc-500 group-hover:text-zinc-400 transition-colors">Get key insights from documents</p>
+      </button>
 
-        <div class="text-center p-6">
-          <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <h3 class="font-bold text-gray-900 ins mb-1">Contextual</h3>
-          <p class="text-sm text-gray-500">Based on your documents</p>
-        </div>
+      <button
+        @click="handleStartChat('Help me understand complex topics')"
+        class="group p-6 rounded-3xl bg-zinc-50 hover:bg-zinc-900 transition-colors duration-500 text-left relative overflow-hidden"
+      >
+        <div class="absolute top-4 right-4 w-2 h-2 rounded-full bg-zinc-300 group-hover:bg-zinc-700 transition-colors"></div>
+        <Icon icon="hugeicons:calculator-01" class="w-8 h-8 text-zinc-900 group-hover:text-white mb-4 transition-colors" />
+        <h3 class="font-medium text-zinc-900 group-hover:text-white mb-1 transition-colors">Deep Analysis</h3>
+        <p class="text-sm text-zinc-500 group-hover:text-zinc-400 transition-colors">Explore topics in detail</p>
+      </button>
 
-        <div class="text-center p-6">
-          <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <h3 class="font-bold text-gray-900 ins mb-1">Source Citations</h3>
-          <p class="text-sm text-gray-500">Transparent & traceable</p>
-        </div>
-      </div>
+      <button
+        @click="handleStartChat('Search my knowledge base')"
+        class="group p-6 rounded-3xl bg-zinc-50 hover:bg-zinc-900 transition-colors duration-500 text-left relative overflow-hidden"
+      >
+        <div class="absolute top-4 right-4 w-2 h-2 rounded-full bg-zinc-300 group-hover:bg-zinc-700 transition-colors"></div>
+        <Icon icon="hugeicons:globe-01" class="w-8 h-8 text-zinc-900 group-hover:text-white mb-4 transition-colors" />
+        <h3 class="font-medium text-zinc-900 group-hover:text-white mb-1 transition-colors">Knowledge Search</h3>
+        <p class="text-sm text-zinc-500 group-hover:text-zinc-400 transition-colors">Find specific information</p>
+      </button>
     </div>
   </div>
 </template>

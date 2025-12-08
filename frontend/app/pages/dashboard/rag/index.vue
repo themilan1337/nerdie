@@ -87,6 +87,7 @@ const handleFileUpload = async (event: Event) => {
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
+    if (!file) continue
 
     const fileType = file.type.includes('pdf')
       ? 'PDF'
@@ -96,8 +97,8 @@ const handleFileUpload = async (event: Event) => {
 
     const tempDoc: Document = {
       id: `temp-${Date.now()}-${i}`,
-      name: file.name,
-      type: fileType,
+      name: file.name || 'Untitled',
+      type: fileType as 'PDF' | 'Image' | 'Text',
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
       uploadedAt: new Date().toISOString().split('T')[0],
       status: 'processing',
@@ -116,14 +117,16 @@ const handleFileUpload = async (event: Event) => {
       const response = await processFile(file)
 
       const docIndex = documents.value.findIndex(d => d.id === tempDoc.id)
-      if (docIndex !== -1) {
-        documents.value[docIndex] = {
-          ...documents.value[docIndex],
+      if (docIndex !== -1 && documents.value[docIndex]) {
+        // Create a new object with safely spread properties to avoid type errors
+        const updatedDoc = {
+          ...documents.value[docIndex]!,
           id: response.documentId || tempDoc.id,
-          status: 'processed',
+          status: 'processed' as const,
           chunks: response.chunks || 0,
           embeddings: response.embeddings || 0,
         }
+        documents.value[docIndex] = updatedDoc as Document
       }
 
       showNotification(`Successfully processed ${file.name}`, 'success')
@@ -131,8 +134,8 @@ const handleFileUpload = async (event: Event) => {
       console.error('Upload error:', err)
 
       const docIndex = documents.value.findIndex(d => d.id === tempDoc.id)
-      if (docIndex !== -1) {
-        documents.value[docIndex].status = 'failed'
+      if (docIndex !== -1 && documents.value[docIndex]) {
+        documents.value[docIndex]!.status = 'failed'
       }
 
       showNotification(`Failed to process ${file.name}: ${err.message}`, 'error')
@@ -195,301 +198,192 @@ onMounted(() => {
   <div class="p-6 lg:p-8">
     <!-- Success Notification -->
     <Transition name="slide-down">
-      <div
-        v-if="showSuccessNotification"
-        class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-2xl flex items-center gap-3 max-w-md"
-      >
-        <Icon icon="hugeicons:check-circle-01" class="w-5 h-5 flex-shrink-0" />
-        <p class="flex-1 text-sm font-medium">{{ successMessage }}</p>
-        <button @click="showSuccessNotification = false" class="flex-shrink-0">
-          <Icon icon="hugeicons:cancel-01" class="w-5 h-5" />
-        </button>
+      <div v-if="showSuccessNotification" class="fixed top-6 right-6 z-50 pointer-events-none">
+        <div class="glass-panel bg-white/90 backdrop-blur-xl border border-green-200 px-6 py-4 rounded-2xl flex items-center gap-3 shadow-lg max-w-md pointer-events-auto">
+          <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <Icon icon="hugeicons:check-circle-01" class="w-5 h-5 text-green-600" />
+          </div>
+          <p class="text-sm font-medium text-green-900">{{ successMessage }}</p>
+        </div>
       </div>
     </Transition>
 
     <!-- Error Notification -->
     <Transition name="slide-down">
-      <div
-        v-if="showErrorNotification"
-        class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-2xl flex items-center gap-3 max-w-md"
-      >
-        <Icon icon="hugeicons:alert-circle" class="w-5 h-5 flex-shrink-0" />
-        <p class="flex-1 text-sm font-medium">{{ errorMessage }}</p>
-        <button @click="showErrorNotification = false" class="flex-shrink-0">
-          <Icon icon="hugeicons:cancel-01" class="w-5 h-5" />
-        </button>
+      <div v-if="showErrorNotification" class="fixed top-6 right-6 z-50 pointer-events-none">
+        <div class="glass-panel bg-white/90 backdrop-blur-xl border border-red-200 px-6 py-4 rounded-2xl flex items-center gap-3 shadow-lg max-w-md pointer-events-auto">
+          <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <Icon icon="hugeicons:alert-circle" class="w-5 h-5 text-red-600" />
+          </div>
+          <p class="text-sm font-medium text-red-900">{{ errorMessage }}</p>
+        </div>
       </div>
     </Transition>
 
-    <!-- Page Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 ins">RAG Management</h1>
-      <p class="text-gray-500 mt-1">Manage your knowledge base documents and embeddings</p>
-    </div>
+    <!-- Header & Stats -->
+    <div class="flex flex-col lg:flex-row gap-8 items-start justify-between">
+      <div class="space-y-2">
+        <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900">Knowledge Base.</h1>
+        <p class="text-zinc-500 font-light max-w-md">Manage documents for RAG processing to enhance AI responses with your data.</p>
+      </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-sm text-gray-600 mb-1">Total Documents</p>
-        <p class="text-2xl font-bold text-gray-900 ins">{{ stats.total }}</p>
-      </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-sm text-gray-600 mb-1">Processed</p>
-        <p class="text-2xl font-bold text-green-600 ins">{{ stats.processed }}</p>
-      </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-sm text-gray-600 mb-1">Processing</p>
-        <p class="text-2xl font-bold text-blue-600 ins">{{ stats.processing }}</p>
-      </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-sm text-gray-600 mb-1">Total Chunks</p>
-        <p class="text-2xl font-bold text-purple-600 ins">{{ stats.totalChunks }}</p>
-      </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
-        <p class="text-sm text-gray-600 mb-1">Embeddings</p>
-        <p class="text-2xl font-bold text-orange-600 ins">{{ stats.totalEmbeddings }}</p>
+      <div class="grid grid-cols-3 gap-4 w-full lg:w-auto">
+        <div class="glass-panel p-4 rounded-2xl min-w-[120px]">
+          <p class="text-xs text-zinc-400 mb-1">Total Docs</p>
+          <p class="text-2xl font-light text-zinc-900">{{ stats.total }}</p>
+        </div>
+        <div class="glass-panel p-4 rounded-2xl min-w-[120px]">
+          <p class="text-xs text-zinc-400 mb-1">Text Chunks</p>
+          <p class="text-2xl font-light text-zinc-900">{{ stats.totalChunks }}</p>
+        </div>
+        <div class="glass-panel p-4 rounded-2xl min-w-[120px]">
+          <p class="text-xs text-zinc-400 mb-1">Embeddings</p>
+          <p class="text-2xl font-light text-zinc-900">{{ stats.totalEmbeddings }}</p>
+        </div>
       </div>
     </div>
 
     <!-- Upload Area -->
-    <div class="bg-white rounded-2xl border-2 border-dashed border-gray-300 p-12 mb-8 hover:border-gray-400 transition-colors">
-      <div class="text-center">
-        <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-          <Icon icon="hugeicons:upload-01" class="w-8 h-8 text-white" />
-        </div>
-        <h3 class="text-xl font-bold text-gray-900 ins mb-2">Upload Documents</h3>
-        <p class="text-gray-500 mb-6">Drag and drop files here, or click to browse</p>
-
-        <label class="inline-block cursor-pointer">
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.txt,.doc,.docx,.png,.jpg,.jpeg"
-            @change="handleFileUpload"
-            class="hidden"
-            :disabled="isIngesting"
-          />
-          <span
-            :class="[
-              'px-6 py-3 rounded-full font-medium ins inline-flex items-center gap-2 transition-colors',
-              isIngesting
-                ? 'bg-gray-400 text-white cursor-not-allowed'
-                : 'bg-black text-white hover:bg-gray-800 cursor-pointer'
-            ]"
-          >
-            <Icon icon="hugeicons:upload-01" class="w-4 h-4" />
-            {{ isIngesting ? 'Processing...' : 'Choose Files' }}
-          </span>
-        </label>
-
-        <p class="text-sm text-gray-400 mt-4">Supported: PDF, TXT, DOC, DOCX, PNG, JPG (Max 10MB)</p>
-
-        <!-- Upload Progress -->
-        <div v-if="isIngesting && uploadProgress > 0" class="mt-6 max-w-md mx-auto">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-700">Uploading...</span>
-            <span class="text-sm font-medium text-gray-700">{{ uploadProgress }}%</span>
-          </div>
-          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              class="h-full bg-gradient-to-r from-orange-400 to-pink-500 transition-all duration-300"
-              :style="{ width: `${uploadProgress}%` }"
+    <div class="group relative">
+      <div class="absolute inset-0 bg-gradient-to-r from-zinc-100 to-zinc-50 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+      <label class="relative block w-full h-48 rounded-[2rem] border-2 border-dashed border-zinc-200 bg-white/50 hover:bg-white hover:border-zinc-300 transition-all cursor-pointer overflow-hidden group-hover:shadow-lg">
+        <input
+          type="file"
+          multiple
+          class="hidden"
+          accept=".pdf,.txt,.md,.json,.csv"
+          @change="handleFileUpload"
+          :disabled="isIngesting"
+        />
+        
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <div class="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Icon
+              :icon="isIngesting ? 'hugeicons:loading-03' : 'hugeicons:cloud-upload'"
+              class="w-8 h-8 text-zinc-400 group-hover:text-zinc-900 transition-colors"
+              :class="{'animate-spin': isIngesting}"
             />
           </div>
+          <p class="text-lg font-light text-zinc-900 mb-1">
+            {{ isIngesting ? 'Processing files...' : 'Drop files here to upload' }}
+          </p>
+          <p class="text-sm text-zinc-400 font-light">
+            Support for PDF, TXT, MD, JSON
+          </p>
         </div>
-      </div>
-    </div>
-
-    <!-- Filters and Search -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <!-- Search -->
-        <div class="flex-1 relative">
-          <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search documents..."
-            class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-          />
-        </div>
-
-        <!-- Filter Dropdown -->
-        <div class="relative">
-          <Icon icon="hugeicons:filter" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select
-            v-model="selectedFilter"
-            class="pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none cursor-pointer min-w-[200px]"
-          >
-            <option v-for="option in filterOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>
-      </div>
+      </label>
     </div>
 
     <!-- Documents List -->
-    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ins">Document</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ins">Type</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ins">Size</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ins">Status</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ins">Chunks</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ins">Uploaded</th>
-              <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider ins">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr
-              v-for="doc in filteredDocuments"
-              :key="doc.id"
-              class="hover:bg-gray-50 transition-colors"
+    <div class="space-y-6">
+      <!-- Controls -->
+      <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+        <h2 class="text-xl font-light text-zinc-900">Stored Documents</h2>
+        
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <div class="relative flex-1 md:w-64 group">
+            <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search documents..."
+              class="w-full pl-10 pr-4 py-2 bg-white border border-zinc-200 rounded-full text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-zinc-300 transition-all shadow-sm"
+            />
+          </div>
+          
+          <div class="relative">
+            <select
+              v-model="selectedFilter"
+              class="appearance-none pl-4 pr-10 py-2 bg-white border border-zinc-200 rounded-full text-zinc-900 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-zinc-300 transition-all shadow-sm cursor-pointer min-w-[140px]"
             >
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="p-2 bg-gray-100 rounded-lg">
-                    <FileText v-if="doc.type === 'PDF'" class="w-5 h-5 text-red-500" />
-                    <ImageIcon v-else-if="doc.type === 'Image'" class="w-5 h-5 text-blue-500" />
-                    <File v-else class="w-5 h-5 text-gray-500" />
-                  </div>
-                  <div>
-                    <p class="font-medium text-gray-900 text-sm">{{ doc.name }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-sm text-gray-600">{{ doc.type }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-sm text-gray-600">{{ doc.size }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <span
-                  :class="[
-                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium',
-                    getStatusBadge(doc.status).color
-                  ]"
-                >
-                  <Icon :icon="getStatusBadge(doc.status).icon" class="w-3 h-3" />
-                  {{ getStatusBadge(doc.status).text }}
-                </span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="text-sm">
-                  <span class="text-gray-900 font-medium">{{ doc.chunks }}</span>
-                  <span class="text-gray-400"> / </span>
-                  <span class="text-gray-600">{{ doc.embeddings }}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-sm text-gray-600">{{ doc.uploadedAt }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex items-center justify-end gap-2">
-                  <button
-                    @click="handleView(doc)"
-                    class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    title="View"
-                  >
-                    <Eye class="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button
-                    @click="handleDownload(doc)"
-                    class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    title="Download"
-                  >
-                    <Download class="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button
-                    v-if="doc.status === 'failed'"
-                    @click="handleReprocess(doc)"
-                    class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    title="Reprocess"
-                  >
-                    <CheckCircle class="w-4 h-4 text-blue-600" />
-                  </button>
-                  <button
-                    @click="handleDelete(doc.id)"
-                    class="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 class="w-4 h-4 text-red-600" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Empty State -->
-        <div v-if="filteredDocuments.length === 0" class="text-center py-12">
-          <div class="w-16 h-16 bg-gray-100 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-            <Icon icon="hugeicons:file-text" class="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 class="text-lg font-bold text-gray-900 ins mb-2">No documents found</h3>
-          <p class="text-gray-500">{{ documents.length === 0 ? 'Upload your first document to get started' : 'Try adjusting your search or filters' }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Processing Info -->
-    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-        <h3 class="text-lg font-bold ins mb-2">RAG Pipeline</h3>
-        <p class="text-sm text-blue-100 mb-4">How your documents are processed</p>
-        <div class="space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span class="text-sm font-bold">1</span>
-            </div>
-            <p class="text-sm">Upload & Extract Text</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span class="text-sm font-bold">2</span>
-            </div>
-            <p class="text-sm">Chunk into Segments</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span class="text-sm font-bold">3</span>
-            </div>
-            <p class="text-sm">Generate Embeddings</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span class="text-sm font-bold">4</span>
-            </div>
-            <p class="text-sm">Store in Vector DB</p>
+              <option v-for="option in filterOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <Icon icon="hugeicons:arrow-down-01" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
           </div>
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
-        <h3 class="text-lg font-bold ins mb-2">Vector Database</h3>
-        <p class="text-sm text-purple-100 mb-4">Powered by pgvector + PostgreSQL</p>
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-sm">Embeddings Model</span>
-            <span class="text-sm font-medium">Gemini Embeddings</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-sm">Vector Dimensions</span>
-            <span class="text-sm font-medium">768</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-sm">Similarity Metric</span>
-            <span class="text-sm font-medium">Cosine</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-sm">Active Documents</span>
-            <span class="text-sm font-medium">{{ stats.total }}</span>
-          </div>
+      <!-- Table -->
+      <div class="glass-panel rounded-3xl overflow-hidden bg-white/50">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-zinc-100 bg-white/50">
+                <th class="px-6 py-4 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Size</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Chunks</th>
+                <th class="px-6 py-4 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+              <tr v-if="filteredDocuments.length === 0">
+                <td colspan="5" class="px-6 py-12 text-center text-zinc-500 font-light">
+                  No documents found
+                </td>
+              </tr>
+              <tr
+                v-for="doc in filteredDocuments"
+                :key="doc.id"
+                class="group hover:bg-white/80 transition-colors"
+                :class="{'bg-zinc-50/50': doc.status === 'processing'}"
+              >
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-400 group-hover:text-zinc-900 group-hover:bg-white border border-transparent group-hover:border-zinc-200 transition-all">
+                      <Icon icon="hugeicons:file-02" class="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-zinc-900 group-hover:text-black transition-colors">{{ doc.name }}</p>
+                      <p class="text-xs text-zinc-400">{{ doc.type }} • {{ doc.uploadedAt }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5"
+                      :class="getStatusBadge(doc.status).color"
+                    >
+                      <Icon :icon="getStatusBadge(doc.status).icon" class="w-3.5 h-3.5" :class="{'animate-spin': doc.status === 'processing'}" />
+                      {{ getStatusBadge(doc.status).text }}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-zinc-500 font-light">{{ doc.size }}</td>
+                <td class="px-6 py-4 text-sm text-zinc-500 font-light">
+                  {{ doc.status === 'processed' ? doc.chunks : '-' }}
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      @click="handleView(doc)"
+                      class="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors"
+                      title="View content"
+                    >
+                      <Icon icon="hugeicons:view" class="w-4 h-4" />
+                    </button>
+                    <button
+                      @click="handleReprocess(doc)"
+                      class="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors"
+                      title="Reprocess"
+                    >
+                      <Icon icon="hugeicons:refresh" class="w-4 h-4" />
+                    </button>
+                    <button
+                      @click="handleDelete(doc.id)"
+                      class="p-2 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
+                      title="Delete"
+                    >
+                      <Icon icon="hugeicons:delete-02" class="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -502,13 +396,9 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.slide-down-enter-from {
-  transform: translateY(-100%);
-  opacity: 0;
-}
-
+.slide-down-enter-from,
 .slide-down-leave-to {
-  transform: translateY(-100%);
+  transform: translateY(-20px);
   opacity: 0;
 }
 </style>
