@@ -11,4 +11,9 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+  runtimeConfig: {
+    public: {
+      ingestionApiUrl: process.env.NUXT_PUBLIC_INGESTION_API_URL || 'https://ingest.nerdie.lol',
+    },
+  },
 });
