@@ -64,7 +64,11 @@ async def root():
         "health": "/auth/health"
     }
 
-
+@app.get("/health", tags=["Health"])
+async def health():
+    """Health check endpoint."""
+    return {"status": "ok"}
+    
 # Global exception handler for unhandled errors
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
