@@ -40,7 +40,7 @@ async def insert_chunk(
         user_id=user_id,
         text=text,
         embedding=embedding,
-        metadata=metadata or {}
+        chunk_metadata=metadata or {}
     )
     
     db.add(chunk)
@@ -72,7 +72,7 @@ async def insert_chunks_bulk(
             user_id=c["user_id"],
             text=c["text"],
             embedding=c["embedding"],
-            metadata=c.get("metadata", {})
+            chunk_metadata=c.get("metadata", {})
         )
         for c in chunks
     ]
