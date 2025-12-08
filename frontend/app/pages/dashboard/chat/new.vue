@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MessageSquare, Lightbulb, Code, BookOpen, Calculator, Globe, Sparkles } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -12,7 +12,7 @@ const selectedPrompt = ref('')
 const promptSuggestions = [
   {
     category: 'General',
-    icon: MessageSquare,
+    icon: 'hugeicons:bubble-chat',
     color: 'from-blue-400 to-blue-600',
     prompts: [
       'Explain a complex concept in simple terms',
@@ -22,7 +22,7 @@ const promptSuggestions = [
   },
   {
     category: 'Creative',
-    icon: Lightbulb,
+    icon: 'hugeicons:bulb',
     color: 'from-yellow-400 to-orange-500',
     prompts: [
       'Generate creative ideas for a project',
@@ -32,7 +32,7 @@ const promptSuggestions = [
   },
   {
     category: 'Technical',
-    icon: Code,
+    icon: 'hugeicons:code',
     color: 'from-purple-400 to-purple-600',
     prompts: [
       'Explain a programming concept',
@@ -42,7 +42,7 @@ const promptSuggestions = [
   },
   {
     category: 'Research',
-    icon: BookOpen,
+    icon: 'hugeicons:book-open-01',
     color: 'from-green-400 to-green-600',
     prompts: [
       'Find information on a specific topic',
@@ -101,7 +101,7 @@ const handlePromptClick = (prompt: string) => {
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             ]"
           >
-            <MessageSquare class="w-4 h-4" />
+            <Icon icon="hugeicons:bubble-chat" class="w-4 h-4" />
             Start Chat
           </button>
         </div>
@@ -121,7 +121,7 @@ const handlePromptClick = (prompt: string) => {
           >
             <div class="flex items-center gap-3 mb-4">
               <div :class="['w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br', category.color]">
-                <component :is="category.icon" class="w-5 h-5 text-white" />
+                <Icon :icon="category.icon" class="w-5 h-5 text-white" />
               </div>
               <h3 class="font-bold text-gray-900 ins text-lg">{{ category.category }}</h3>
             </div>
@@ -151,7 +151,7 @@ const handlePromptClick = (prompt: string) => {
           class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white transition-all group"
         >
           <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <BookOpen class="w-6 h-6" />
+            <Icon icon="hugeicons:book-open-01" class="w-6 h-6" />
           </div>
           <h3 class="font-bold ins text-lg mb-2">Quick Summary</h3>
           <p class="text-sm text-blue-100">Get key insights from your documents</p>
@@ -162,7 +162,7 @@ const handlePromptClick = (prompt: string) => {
           class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white transition-all group"
         >
           <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <Calculator class="w-6 h-6" />
+            <Icon icon="hugeicons:calculator-01" class="w-6 h-6" />
           </div>
           <h3 class="font-bold ins text-lg mb-2">Deep Analysis</h3>
           <p class="text-sm text-purple-100">Explore topics in detail</p>
@@ -173,7 +173,7 @@ const handlePromptClick = (prompt: string) => {
           class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white transition-all group"
         >
           <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-            <Globe class="w-6 h-6" />
+            <Icon icon="hugeicons:globe-01" class="w-6 h-6" />
           </div>
           <h3 class="font-bold ins text-lg mb-2">Knowledge Search</h3>
           <p class="text-sm text-green-100">Find specific information</p>
@@ -192,7 +192,7 @@ const handlePromptClick = (prompt: string) => {
           >
             <div class="flex items-center gap-4">
               <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
-                <MessageSquare class="w-5 h-5 text-gray-600" />
+                <Icon icon="hugeicons:bubble-chat" class="w-5 h-5 text-gray-600" />
               </div>
               <div class="text-left">
                 <h3 class="font-semibold text-gray-900 ins">{{ topic.title }}</h3>

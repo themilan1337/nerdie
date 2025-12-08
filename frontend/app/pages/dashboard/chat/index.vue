@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { MessageSquare, Plus, Clock, Trash2, Search, Filter } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -90,7 +90,7 @@ const deleteChat = (chatId: string, event: Event) => {
         @click="createNewChat"
         class="px-6 py-3 bg-black text-white rounded-full font-medium ins hover:bg-gray-800 transition-colors inline-flex items-center gap-2"
       >
-        <Plus class="w-5 h-5" />
+        <Icon icon="hugeicons:plus-sign" class="w-5 h-5" />
         New Chat
       </button>
     </div>
@@ -100,7 +100,7 @@ const deleteChat = (chatId: string, event: Event) => {
       <div class="flex flex-col md:flex-row gap-4">
         <!-- Search -->
         <div class="flex-1 relative">
-          <Search class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             v-model="searchQuery"
             type="text"
@@ -111,7 +111,7 @@ const deleteChat = (chatId: string, event: Event) => {
 
         <!-- Filter Dropdown -->
         <div class="relative">
-          <Filter class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Icon icon="hugeicons:filter" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <select
             v-model="selectedFilter"
             class="pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none cursor-pointer min-w-[200px]"
@@ -135,7 +135,7 @@ const deleteChat = (chatId: string, event: Event) => {
         <div class="flex items-start justify-between">
           <div class="flex items-start gap-4 flex-1">
             <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
-              <MessageSquare class="w-6 h-6 text-white" />
+              <Icon icon="hugeicons:bubble-chat" class="w-6 h-6 text-white" />
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="text-lg font-bold text-gray-900 ins mb-1 group-hover:text-black">
@@ -146,7 +146,7 @@ const deleteChat = (chatId: string, event: Event) => {
               </p>
               <div class="flex items-center gap-4 text-xs text-gray-500">
                 <span class="flex items-center gap-1">
-                  <Clock class="w-3 h-3" />
+                  <Icon icon="hugeicons:clock-01" class="w-3 h-3" />
                   {{ chat.timestamp }}
                 </span>
                 <span>{{ chat.messageCount }} messages</span>
@@ -158,7 +158,7 @@ const deleteChat = (chatId: string, event: Event) => {
             class="p-2 rounded-lg hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
             title="Delete chat"
           >
-            <Trash2 class="w-5 h-5 text-red-600" />
+            <Icon icon="hugeicons:delete-02" class="w-5 h-5 text-red-600" />
           </button>
         </div>
       </div>
@@ -167,7 +167,7 @@ const deleteChat = (chatId: string, event: Event) => {
     <!-- Empty State -->
     <div v-else class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
       <div class="w-20 h-20 bg-gray-100 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-        <MessageSquare class="w-10 h-10 text-gray-400" />
+        <Icon icon="hugeicons:bubble-chat" class="w-10 h-10 text-gray-400" />
       </div>
       <h3 class="text-xl font-bold text-gray-900 ins mb-2">
         {{ chats.length === 0 ? 'No chats yet' : 'No chats found' }}
@@ -183,7 +183,7 @@ const deleteChat = (chatId: string, event: Event) => {
         @click="createNewChat"
         class="px-6 py-3 bg-black text-white rounded-full font-medium ins hover:bg-gray-800 transition-colors inline-flex items-center gap-2"
       >
-        <Plus class="w-5 h-5" />
+        <Icon icon="hugeicons:plus-sign" class="w-5 h-5" />
         Start Your First Chat
       </button>
     </div>

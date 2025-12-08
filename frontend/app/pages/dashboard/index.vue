@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MessageSquare, Database, TrendingUp, Clock, FileText, Zap } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
 
 definePageMeta({
   layout: 'dashboard',
@@ -7,10 +7,10 @@ definePageMeta({
 })
 
 const stats = [
-  { name: 'Total Chats', value: '24', icon: MessageSquare, change: '+12%', changeType: 'positive' },
-  { name: 'Documents in RAG', value: '156', icon: Database, change: '+8%', changeType: 'positive' },
-  { name: 'Queries Today', value: '89', icon: TrendingUp, change: '+23%', changeType: 'positive' },
-  { name: 'Avg Response Time', value: '1.2s', icon: Clock, change: '-5%', changeType: 'positive' },
+  { name: 'Total Chats', value: '24', icon: 'hugeicons:bubble-chat', change: '+12%', changeType: 'positive' },
+  { name: 'Documents in RAG', value: '156', icon: 'hugeicons:database-01', change: '+8%', changeType: 'positive' },
+  { name: 'Queries Today', value: '89', icon: 'hugeicons:analytics-up', change: '+23%', changeType: 'positive' },
+  { name: 'Avg Response Time', value: '1.2s', icon: 'hugeicons:clock-01', change: '-5%', changeType: 'positive' },
 ]
 
 const recentChats = [
@@ -28,10 +28,10 @@ const recentDocuments = [
 ]
 
 const quickActions = [
-  { name: 'New Chat', description: 'Start a conversation', icon: MessageSquare, href: '/dashboard/chat/new', color: 'bg-blue-500' },
-  { name: 'Upload Document', description: 'Add to knowledge base', icon: FileText, href: '/dashboard/rag', color: 'bg-green-500' },
-  { name: 'View Analytics', description: 'Check performance', icon: TrendingUp, href: '/dashboard/analytics', color: 'bg-purple-500' },
-  { name: 'Quick Query', description: 'Fast AI response', icon: Zap, href: '/dashboard/chat/new', color: 'bg-orange-500' },
+  { name: 'New Chat', description: 'Start a conversation', icon: 'hugeicons:bubble-chat', href: '/dashboard/chat/new', color: 'bg-blue-500' },
+  { name: 'Upload Document', description: 'Add to knowledge base', icon: 'hugeicons:file-text', href: '/dashboard/rag', color: 'bg-green-500' },
+  { name: 'View Analytics', description: 'Check performance', icon: 'hugeicons:analytics-up', href: '/dashboard/analytics', color: 'bg-purple-500' },
+  { name: 'Quick Query', description: 'Fast AI response', icon: 'hugeicons:flash', href: '/dashboard/chat/new', color: 'bg-orange-500' },
 ]
 </script>
 
@@ -52,7 +52,7 @@ const quickActions = [
       >
         <div class="flex items-start justify-between mb-3">
           <div class="p-2 bg-gray-50 rounded-lg">
-            <component :is="stat.icon" class="w-5 h-5 text-gray-700" />
+            <Icon :icon="stat.icon" class="w-5 h-5 text-gray-700" />
           </div>
           <span
             :class="[
@@ -79,7 +79,7 @@ const quickActions = [
           class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-all group"
         >
           <div :class="[action.color, 'w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-105 transition-transform']">
-            <component :is="action.icon" class="w-5 h-5 text-white" />
+            <Icon :icon="action.icon" class="w-5 h-5 text-white" />
           </div>
           <h3 class="font-semibold text-gray-900 mb-1 ins text-sm">{{ action.name }}</h3>
           <p class="text-xs text-gray-500">{{ action.description }}</p>
@@ -113,7 +113,7 @@ const quickActions = [
                 </div>
                 <p class="text-xs text-gray-500 truncate mb-1.5">{{ chat.preview }}</p>
                 <div class="flex items-center gap-1.5">
-                  <Clock class="w-3 h-3 text-gray-400" />
+                  <Icon icon="hugeicons:clock-01" class="w-3 h-3 text-gray-400" />
                   <span class="text-xs text-gray-400">{{ chat.time }}</span>
                 </div>
               </div>
@@ -143,7 +143,7 @@ const quickActions = [
               class="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-gray-50 transition-all group cursor-pointer"
             >
               <div class="p-1.5 bg-gray-100 rounded-md">
-                <FileText class="w-3.5 h-3.5 text-gray-600" />
+                <Icon icon="hugeicons:file-text" class="w-3.5 h-3.5 text-gray-600" />
               </div>
               <div class="flex-1 min-w-0">
                 <h3 class="font-medium text-gray-900 truncate text-xs">{{ doc.name }}</h3>
