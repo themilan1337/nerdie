@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     # ===== Gemini API Configuration =====
     gemini_api_key: str
     gemini_embedding_model: str = "text-embedding-004"
-    gemini_llm_model: str = "gemini-1.5-flash"
+    gemini_llm_model: str = "gemini-2.5-flash"
     
     # ===== Vector Search Configuration =====
     # Dimension of embedding vectors (Gemini text-embedding-004 uses 768)
