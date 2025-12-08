@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useIngestionApi } from '../../../../composables/useIngestionApi'
 
@@ -18,6 +18,7 @@ const successMessage = ref('')
 const showErrorNotification = ref(false)
 const errorMessage = ref('')
 const isIngesting = ref(false)
+const uploadProgress = ref('')
 const documents = ref<any[]>([])
 const isLoading = ref(true)
 
@@ -85,16 +86,33 @@ const loadDocs = async () => {
     try {
         const docs = await fetchDocuments()
         documents.value = docs || []
-    } catch (e) {
+    } catch (e: any) {
         console.error("Failed to load docs", e)
-        showNotification("Failed to load documents", 'error')
+        const errorMsg = e?.message || 'Unknown error occurred'
+        showNotification(`Failed to load documents: ${errorMsg}`, 'error')
+        // Set empty array so UI doesn't break
+        documents.value = []
     } finally {
         isLoading.value = false
     }
 }
 
+// Prevent accidental page close during upload
+const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  if (isIngesting.value) {
+    e.preventDefault()
+    e.returnValue = ''
+    return ''
+  }
+}
+
 onMounted(() => {
     loadDocs()
+    window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
 const handleFileUpload = async (event: Event) => {
@@ -103,25 +121,48 @@ const handleFileUpload = async (event: Event) => {
 
   if (!files || files.length === 0) return
 
-  isIngesting.value = true
-  
-  // Upload sequentially or parallel
-  for (let i = 0; i < files.length; i++) {
+  try {
+    isIngesting.value = true
+    uploadProgress.value = ''
+
+    let successCount = 0
+    let errorCount = 0
+
+    // Upload sequentially to avoid overwhelming the server
+    for (let i = 0; i < files.length; i++) {
       const file = files[i]
       if (file) {
         try {
-            await uploadDocument(file)
-            showNotification(`Successfully processed ${file.name}`, 'success')
+          uploadProgress.value = `Uploading ${i + 1}/${files.length}: ${file.name}`
+          await uploadDocument(file)
+          successCount++
+          showNotification(`Successfully processed ${file.name}`, 'success')
         } catch (e: any) {
-            console.error(e)
-            showNotification(`Failed to upload ${file.name}`, 'error')
+          errorCount++
+          console.error('Upload error:', e)
+          const errorMsg = e?.data?.message || e?.message || 'Unknown error'
+          showNotification(`Failed to upload ${file.name}: ${errorMsg}`, 'error')
         }
       }
+    }
+
+    // Show summary if multiple files
+    if (files.length > 1) {
+      const summary = `Upload complete: ${successCount} succeeded, ${errorCount} failed`
+      showNotification(summary, errorCount === 0 ? 'success' : 'error')
+    }
+
+    // Reload documents list
+    uploadProgress.value = 'Refreshing document list...'
+    await loadDocs()
+  } catch (e: any) {
+    console.error('Critical error in file upload:', e)
+    showNotification('An unexpected error occurred during upload', 'error')
+  } finally {
+    isIngesting.value = false
+    uploadProgress.value = ''
+    input.value = ''
   }
-  
-  await loadDocs()
-  isIngesting.value = false
-  input.value = ''
 }
 
 const handleDelete = (id: string) => {
@@ -223,10 +264,10 @@ const getStatusBadge = (status: string) => {
             />
           </div>
           <p class="text-lg font-light text-zinc-900 mb-1">
-            {{ isIngesting ? 'Processing files...' : 'Drop files here to upload' }}
+            {{ isIngesting ? (uploadProgress || 'Processing files...') : 'Drop files here to upload' }}
           </p>
           <p class="text-sm text-zinc-400 font-light">
-            Support for PDF, TXT, MD, JSON, Images
+            {{ isIngesting ? 'Please wait, this may take a few minutes...' : 'Support for PDF, TXT, MD, JSON, Images' }}
           </p>
         </div>
       </label>

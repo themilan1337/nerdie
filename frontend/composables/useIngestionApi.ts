@@ -25,17 +25,39 @@ export const useIngestionApi = () => {
         try {
             // @ts-ignore
             const { getAuthHeader } = useAuth()
-            const headers = (await getAuthHeader()) || undefined
+            const headers = getAuthHeader()
+
+            if (!headers) {
+                throw new Error('Not authenticated. Please sign in again.')
+            }
 
             // @ts-ignore
             const data = await $fetch(`${baseUrl}${endpoint}`, {
                 method: 'POST',
                 headers,
-                body: formData
+                body: formData,
+                // Add timeout to prevent hanging
+                timeout: 120000 // 2 minutes timeout
             })
             return data
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error uploading document:', error)
+
+            // Provide more helpful error messages
+            if (error?.statusCode === 401 || error?.status === 401) {
+                throw new Error('Authentication expired. Please sign in again.')
+            } else if (error?.statusCode === 413 || error?.status === 413) {
+                throw new Error('File is too large to upload.')
+            } else if (error?.statusCode === 415 || error?.status === 415) {
+                throw new Error('File type not supported.')
+            } else if (error?.statusCode === 500 || error?.status === 500) {
+                throw new Error('Server error. Please try again later.')
+            } else if (error?.message?.includes('timeout')) {
+                throw new Error('Upload timed out. Please try a smaller file.')
+            } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+                throw new Error('Network error. Please check your connection.')
+            }
+
             throw error
         }
     }
@@ -45,15 +67,35 @@ export const useIngestionApi = () => {
             // Note: The Swagger shows /ingest/documents returns a list.
             // @ts-ignore
             const { getAuthHeader } = useAuth()
-            const headers = (await getAuthHeader()) || undefined
+            const headers = getAuthHeader()
+
+            if (!headers) {
+                console.warn('No auth headers available for fetching documents')
+                return []
+            }
 
             // @ts-ignore
             const data = await $fetch(`${baseUrl}/ingest/documents`, {
-                headers
+                headers,
+                timeout: 30000 // 30 seconds timeout
             })
             return (data as any[]) || []
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error fetching documents:', error)
+
+            // Provide more helpful error messages
+            if (error?.statusCode === 401 || error?.status === 401) {
+                throw new Error('Authentication expired. Please sign in again.')
+            } else if (error?.statusCode === 500 || error?.status === 500) {
+                throw new Error('Server error while fetching documents.')
+            } else if (error?.message?.includes('timeout')) {
+                throw new Error('Request timed out. Please try again.')
+            } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+                throw new Error('Network error. Please check your connection.')
+            }
+
+            // Return empty array on error but log it
+            console.warn('Returning empty documents array due to error')
             return []
         }
     }
