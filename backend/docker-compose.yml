@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  # ============ Auth Service ============
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: nerdie-auth
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./auth/.env
+    volumes:
+      - ./auth/firebase-credentials.json:/app/firebase-credentials.json:ro
+    restart: unless-stopped
+    networks:
+      - nerdie-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============ RAG Service ============
+  rag:
+    build:
+      context: ./rag_service
+      dockerfile: Dockerfile
+    container_name: nerdie-rag
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./rag_service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - nerdie-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ============ PostgreSQL with pgvector ============
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: nerdie-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: nerdie
+      POSTGRES_PASSWORD: nerdie_password
+      POSTGRES_DB: nerdie_rag
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - nerdie-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nerdie -d nerdie_rag"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  nerdie-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
