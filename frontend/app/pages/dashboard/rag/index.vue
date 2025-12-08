@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Upload, FileText, Image as ImageIcon, File, Trash2, Download, Search, Filter, MoreVertical, Eye, CheckCircle, Clock, AlertCircle } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { Upload, FileText, Image as ImageIcon, File, Trash2, Download, Search, Filter, MoreVertical, Eye, CheckCircle, Clock, AlertCircle, X } from 'lucide-vue-next'
+import type { Document } from '~/types/ingestion'
 
 definePageMeta({
   layout: 'dashboard'
@@ -8,8 +9,19 @@ definePageMeta({
 
 const searchQuery = ref('')
 const selectedFilter = ref('all')
-const isUploading = ref(false)
-const uploadProgress = ref(0)
+const showSuccessNotification = ref(false)
+const successMessage = ref('')
+const showErrorNotification = ref(false)
+const errorMessage = ref('')
+
+const {
+  isLoading: isIngesting,
+  error: ingestionError,
+  uploadProgress,
+  processFile,
+  ingestText,
+  healthCheck
+} = useIngestion()
 
 const filterOptions = [
   { value: 'all', label: 'All Documents' },
@@ -19,80 +31,7 @@ const filterOptions = [
   { value: 'processing', label: 'Processing' },
 ]
 
-const documents = ref([
-  {
-    id: 1,
-    name: 'Machine_Learning_Guide.pdf',
-    type: 'PDF',
-    size: '2.4 MB',
-    uploadedAt: '2024-01-15',
-    status: 'processed',
-    chunks: 45,
-    embeddings: 45,
-    icon: FileText,
-    color: 'text-red-500'
-  },
-  {
-    id: 2,
-    name: 'Neural_Networks_Diagram.png',
-    type: 'Image',
-    size: '1.8 MB',
-    uploadedAt: '2024-01-14',
-    status: 'processed',
-    chunks: 1,
-    embeddings: 1,
-    icon: ImageIcon,
-    color: 'text-blue-500'
-  },
-  {
-    id: 3,
-    name: 'Research_Paper_2024.pdf',
-    type: 'PDF',
-    size: '3.2 MB',
-    uploadedAt: '2024-01-13',
-    status: 'processing',
-    chunks: 67,
-    embeddings: 42,
-    icon: FileText,
-    color: 'text-red-500'
-  },
-  {
-    id: 4,
-    name: 'Project_Notes.txt',
-    type: 'Text',
-    size: '45 KB',
-    uploadedAt: '2024-01-12',
-    status: 'processed',
-    chunks: 12,
-    embeddings: 12,
-    icon: File,
-    color: 'text-gray-500'
-  },
-  {
-    id: 5,
-    name: 'AI_Ethics_Guidelines.pdf',
-    type: 'PDF',
-    size: '1.2 MB',
-    uploadedAt: '2024-01-11',
-    status: 'failed',
-    chunks: 0,
-    embeddings: 0,
-    icon: FileText,
-    color: 'text-red-500'
-  },
-  {
-    id: 6,
-    name: 'Data_Visualization.png',
-    type: 'Image',
-    size: '890 KB',
-    uploadedAt: '2024-01-10',
-    status: 'processed',
-    chunks: 1,
-    embeddings: 1,
-    icon: ImageIcon,
-    color: 'text-blue-500'
-  },
-])
+const documents = ref<Document[]>([])
 
 const stats = computed(() => ({
   total: documents.value.length,
@@ -105,14 +44,12 @@ const stats = computed(() => ({
 const filteredDocuments = computed(() => {
   let filtered = documents.value
 
-  // Apply search filter
   if (searchQuery.value) {
     filtered = filtered.filter(doc =>
       doc.name.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
   }
 
-  // Apply type filter
   if (selectedFilter.value !== 'all') {
     if (selectedFilter.value === 'processing') {
       filtered = filtered.filter(doc => doc.status === 'processing')
@@ -126,66 +63,105 @@ const filteredDocuments = computed(() => {
   return filtered
 })
 
+const showNotification = (message: string, type: 'success' | 'error') => {
+  if (type === 'success') {
+    successMessage.value = message
+    showSuccessNotification.value = true
+    setTimeout(() => {
+      showSuccessNotification.value = false
+    }, 5000)
+  } else {
+    errorMessage.value = message
+    showErrorNotification.value = true
+    setTimeout(() => {
+      showErrorNotification.value = false
+    }, 5000)
+  }
+}
+
 const handleFileUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const files = input.files
 
   if (!files || files.length === 0) return
 
-  isUploading.value = true
-  uploadProgress.value = 0
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
 
-  // Simulate upload progress
-  const interval = setInterval(() => {
-    uploadProgress.value += 10
-    if (uploadProgress.value >= 100) {
-      clearInterval(interval)
-      setTimeout(() => {
-        isUploading.value = false
-        uploadProgress.value = 0
+    const fileType = file.type.includes('pdf')
+      ? 'PDF'
+      : file.type.includes('image')
+      ? 'Image'
+      : 'Text'
 
-        // Add new document to the list
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i]
-          const fileType = file.type.includes('pdf') ? 'PDF' : file.type.includes('image') ? 'Image' : 'Text'
-          documents.value.unshift({
-            id: documents.value.length + 1,
-            name: file.name,
-            type: fileType,
-            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-            uploadedAt: new Date().toISOString().split('T')[0],
-            status: 'processing',
-            chunks: 0,
-            embeddings: 0,
-            icon: fileType === 'PDF' ? FileText : fileType === 'Image' ? ImageIcon : File,
-            color: fileType === 'PDF' ? 'text-red-500' : fileType === 'Image' ? 'text-blue-500' : 'text-gray-500'
-          })
-        }
-      }, 500)
+    const tempDoc: Document = {
+      id: `temp-${Date.now()}-${i}`,
+      name: file.name,
+      type: fileType,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      uploadedAt: new Date().toISOString().split('T')[0],
+      status: 'processing',
+      chunks: 0,
+      embeddings: 0,
+      metadata: {
+        filename: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      }
     }
-  }, 200)
+
+    documents.value.unshift(tempDoc)
+
+    try {
+      const response = await processFile(file)
+
+      const docIndex = documents.value.findIndex(d => d.id === tempDoc.id)
+      if (docIndex !== -1) {
+        documents.value[docIndex] = {
+          ...documents.value[docIndex],
+          id: response.documentId || tempDoc.id,
+          status: 'processed',
+          chunks: response.chunks || 0,
+          embeddings: response.embeddings || 0,
+        }
+      }
+
+      showNotification(`Successfully processed ${file.name}`, 'success')
+    } catch (err: any) {
+      console.error('Upload error:', err)
+
+      const docIndex = documents.value.findIndex(d => d.id === tempDoc.id)
+      if (docIndex !== -1) {
+        documents.value[docIndex].status = 'failed'
+      }
+
+      showNotification(`Failed to process ${file.name}: ${err.message}`, 'error')
+    }
+  }
+
+  input.value = ''
 }
 
-const handleDelete = (id: number) => {
+const handleDelete = (id: string) => {
   if (confirm('Are you sure you want to delete this document?')) {
     documents.value = documents.value.filter(doc => doc.id !== id)
+    showNotification('Document deleted successfully', 'success')
   }
 }
 
-const handleDownload = (doc: any) => {
+const handleDownload = (doc: Document) => {
   console.log('Downloading:', doc.name)
+  showNotification('Download feature coming soon', 'error')
 }
 
-const handleView = (doc: any) => {
+const handleView = (doc: Document) => {
   console.log('Viewing:', doc.name)
+  showNotification('View feature coming soon', 'error')
 }
 
-const handleReprocess = (doc: any) => {
+const handleReprocess = async (doc: Document) => {
   console.log('Reprocessing:', doc.name)
-  const document = documents.value.find(d => d.id === doc.id)
-  if (document) {
-    document.status = 'processing'
-  }
+  showNotification('Reprocess feature coming soon', 'error')
 }
 
 const getStatusBadge = (status: string) => {
@@ -200,10 +176,51 @@ const getStatusBadge = (status: string) => {
       return { color: 'bg-gray-100 text-gray-700', icon: Clock, text: 'Unknown' }
   }
 }
+
+const checkServiceHealth = async () => {
+  try {
+    await healthCheck()
+    console.log('Ingestion service is healthy')
+  } catch (err) {
+    console.error('Ingestion service health check failed:', err)
+  }
+}
+
+onMounted(() => {
+  checkServiceHealth()
+})
 </script>
 
 <template>
   <div class="p-6 lg:p-8">
+    <!-- Success Notification -->
+    <Transition name="slide-down">
+      <div
+        v-if="showSuccessNotification"
+        class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3 max-w-md"
+      >
+        <CheckCircle class="w-5 h-5 flex-shrink-0" />
+        <p class="flex-1 text-sm font-medium">{{ successMessage }}</p>
+        <button @click="showSuccessNotification = false" class="flex-shrink-0">
+          <X class="w-5 h-5" />
+        </button>
+      </div>
+    </Transition>
+
+    <!-- Error Notification -->
+    <Transition name="slide-down">
+      <div
+        v-if="showErrorNotification"
+        class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3 max-w-md"
+      >
+        <AlertCircle class="w-5 h-5 flex-shrink-0" />
+        <p class="flex-1 text-sm font-medium">{{ errorMessage }}</p>
+        <button @click="showErrorNotification = false" class="flex-shrink-0">
+          <X class="w-5 h-5" />
+        </button>
+      </div>
+    </Transition>
+
     <!-- Page Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 ins">RAG Management</h1>
@@ -250,17 +267,25 @@ const getStatusBadge = (status: string) => {
             accept=".pdf,.txt,.doc,.docx,.png,.jpg,.jpeg"
             @change="handleFileUpload"
             class="hidden"
+            :disabled="isIngesting"
           />
-          <span class="px-6 py-3 bg-black text-white rounded-full font-medium ins hover:bg-gray-800 transition-colors inline-flex items-center gap-2">
+          <span
+            :class="[
+              'px-6 py-3 rounded-full font-medium ins inline-flex items-center gap-2 transition-colors',
+              isIngesting
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-black text-white hover:bg-gray-800 cursor-pointer'
+            ]"
+          >
             <Upload class="w-4 h-4" />
-            Choose Files
+            {{ isIngesting ? 'Processing...' : 'Choose Files' }}
           </span>
         </label>
 
         <p class="text-sm text-gray-400 mt-4">Supported: PDF, TXT, DOC, DOCX, PNG, JPG (Max 10MB)</p>
 
         <!-- Upload Progress -->
-        <div v-if="isUploading" class="mt-6 max-w-md mx-auto">
+        <div v-if="isIngesting && uploadProgress > 0" class="mt-6 max-w-md mx-auto">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium text-gray-700">Uploading...</span>
             <span class="text-sm font-medium text-gray-700">{{ uploadProgress }}%</span>
@@ -328,7 +353,9 @@ const getStatusBadge = (status: string) => {
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <div class="p-2 bg-gray-100 rounded-lg">
-                    <component :is="doc.icon" :class="['w-5 h-5', doc.color]" />
+                    <FileText v-if="doc.type === 'PDF'" class="w-5 h-5 text-red-500" />
+                    <ImageIcon v-else-if="doc.type === 'Image'" class="w-5 h-5 text-blue-500" />
+                    <File v-else class="w-5 h-5 text-gray-500" />
                   </div>
                   <div>
                     <p class="font-medium text-gray-900 text-sm">{{ doc.name }}</p>
@@ -405,7 +432,7 @@ const getStatusBadge = (status: string) => {
             <FileText class="w-8 h-8 text-gray-400" />
           </div>
           <h3 class="text-lg font-bold text-gray-900 ins mb-2">No documents found</h3>
-          <p class="text-gray-500">Try adjusting your search or filters</p>
+          <p class="text-gray-500">{{ documents.length === 0 ? 'Upload your first document to get started' : 'Try adjusting your search or filters' }}</p>
         </div>
       </div>
     </div>
@@ -460,11 +487,28 @@ const getStatusBadge = (status: string) => {
             <span class="text-sm font-medium">Cosine</span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-sm">Storage Used</span>
-            <span class="text-sm font-medium">234 MB</span>
+            <span class="text-sm">Active Documents</span>
+            <span class="text-sm font-medium">{{ stats.total }}</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-down-enter-from {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.slide-down-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+</style>

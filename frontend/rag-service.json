@@ -1,0 +1,628 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Nerdie RAG Service",
+        "description": "\n    RAG (Retrieval-Augmented Generation) service for the Nerdie knowledge assistant.\n    \n    ## Features\n    - Vector storage with pgvector\n    - Semantic similarity search\n    - Gemini-powered answer generation\n    - Anti-hallucination safeguards\n    \n    ## Endpoints\n    - **POST /vector/insert** - Insert document chunks\n    - **POST /rag/query** - Query the knowledge base\n    - **GET /health** - Health check\n    ",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/vector/insert": {
+            "post": {
+                "tags": [
+                    "Vector Operations"
+                ],
+                "summary": "Insert a document chunk",
+                "description": "Insert a text chunk with its vector embedding into the database",
+                "operationId": "insert_vector_vector_insert_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VectorInsertRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VectorInsertResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/query": {
+            "post": {
+                "tags": [
+                    "RAG Query"
+                ],
+                "summary": "Query the knowledge base",
+                "description": "Ask a question and get an AI-generated answer based on your documents",
+                "operationId": "rag_query_rag_query_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RAGQueryRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RAGQueryResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check",
+                "description": "Check if the service and database are healthy",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/graph/query": {
+            "get": {
+                "tags": [
+                    "Knowledge Graph"
+                ],
+                "summary": "Query knowledge graph (MVP)",
+                "description": "Query the knowledge graph for entity relationships. Currently returns stub data.",
+                "operationId": "graph_query_graph_query_get",
+                "parameters": [
+                    {
+                        "name": "entity",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "description": "Entity name to query",
+                            "title": "Entity"
+                        },
+                        "description": "Entity name to query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GraphQueryResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/": {
+            "get": {
+                "tags": [
+                    "Root"
+                ],
+                "summary": "Root",
+                "description": "Root endpoint with service information.",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ChunkResult": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "text": {
+                        "type": "string",
+                        "title": "Text"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata"
+                    },
+                    "score": {
+                        "type": "number",
+                        "title": "Score",
+                        "description": "Similarity score (lower = more similar)"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Type",
+                        "description": "Chunk type: 'text' or 'image'",
+                        "default": "text"
+                    },
+                    "image_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Image Url",
+                        "description": "Image URL if type='image'"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "text",
+                    "metadata",
+                    "score"
+                ],
+                "title": "ChunkResult",
+                "description": "A single chunk result from similarity search.\n\nSupports both text and image chunks:\n- type=\"text\": regular text chunk\n- type=\"image\": image chunk with image_url"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "title": "Error"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "error",
+                    "message"
+                ],
+                "title": "ErrorResponse",
+                "description": "Standard error response format."
+            },
+            "GraphEdge": {
+                "properties": {
+                    "source": {
+                        "type": "string",
+                        "title": "Source"
+                    },
+                    "target": {
+                        "type": "string",
+                        "title": "Target"
+                    },
+                    "relation": {
+                        "type": "string",
+                        "title": "Relation"
+                    },
+                    "properties": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Properties"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "source",
+                    "target",
+                    "relation"
+                ],
+                "title": "GraphEdge",
+                "description": "An edge in the knowledge graph."
+            },
+            "GraphNode": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "label": {
+                        "type": "string",
+                        "title": "Label"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Type"
+                    },
+                    "properties": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Properties"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "label",
+                    "type"
+                ],
+                "title": "GraphNode",
+                "description": "A node in the knowledge graph."
+            },
+            "GraphQueryResponse": {
+                "properties": {
+                    "entity": {
+                        "type": "string",
+                        "title": "Entity"
+                    },
+                    "nodes": {
+                        "items": {
+                            "$ref": "#/components/schemas/GraphNode"
+                        },
+                        "type": "array",
+                        "title": "Nodes"
+                    },
+                    "edges": {
+                        "items": {
+                            "$ref": "#/components/schemas/GraphEdge"
+                        },
+                        "type": "array",
+                        "title": "Edges"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "entity"
+                ],
+                "title": "GraphQueryResponse",
+                "description": "Response schema for graph query (MVP stub)."
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HealthResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "default": "ok"
+                    },
+                    "service": {
+                        "type": "string",
+                        "title": "Service",
+                        "default": "rag_service"
+                    },
+                    "database": {
+                        "type": "string",
+                        "title": "Database",
+                        "default": "connected"
+                    }
+                },
+                "type": "object",
+                "title": "HealthResponse",
+                "description": "Health check response."
+            },
+            "RAGQueryRequest": {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "title": "Query",
+                        "description": "User's question"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "title": "User Id",
+                        "description": "User ID to filter chunks"
+                    },
+                    "top_k": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 20,
+                                "minimum": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Top K",
+                        "description": "Number of chunks to retrieve",
+                        "default": 5
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query",
+                    "user_id"
+                ],
+                "title": "RAGQueryRequest",
+                "description": "Request schema for RAG query.\n\nThe query will be:\n1. Embedded using Gemini\n2. Used for similarity search\n3. Context assembled and sent to LLM",
+                "example": {
+                    "query": "What is the main topic of the document?",
+                    "top_k": 5,
+                    "user_id": "user123"
+                }
+            },
+            "RAGQueryResponse": {
+                "properties": {
+                    "answer": {
+                        "type": "string",
+                        "title": "Answer",
+                        "description": "LLM-generated answer based on context"
+                    },
+                    "chunks": {
+                        "items": {
+                            "$ref": "#/components/schemas/ChunkResult"
+                        },
+                        "type": "array",
+                        "title": "Chunks",
+                        "description": "Retrieved relevant chunks"
+                    },
+                    "context_used": {
+                        "type": "string",
+                        "title": "Context Used",
+                        "description": "Full context sent to LLM"
+                    },
+                    "scores": {
+                        "items": {
+                            "type": "number"
+                        },
+                        "type": "array",
+                        "title": "Scores",
+                        "description": "Similarity scores for each chunk"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "answer",
+                    "chunks",
+                    "context_used",
+                    "scores"
+                ],
+                "title": "RAGQueryResponse",
+                "description": "Response schema for RAG query.\n\nIncludes:\n- Generated answer from LLM\n- Retrieved chunks with scores\n- Full context that was used"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            },
+            "VectorInsertRequest": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id",
+                        "description": "Unique identifier for the chunk"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "title": "User Id",
+                        "description": "User ID for multi-tenant isolation"
+                    },
+                    "text": {
+                        "type": "string",
+                        "title": "Text",
+                        "description": "Original text content"
+                    },
+                    "embedding": {
+                        "items": {
+                            "type": "number"
+                        },
+                        "type": "array",
+                        "title": "Embedding",
+                        "description": "Vector embedding (768 dims)"
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata",
+                        "description": "Optional metadata (source, page, etc.)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "user_id",
+                    "text",
+                    "embedding"
+                ],
+                "title": "VectorInsertRequest",
+                "description": "Request schema for inserting a chunk with its embedding.\n\nUsed by ingestion service to store processed chunks.",
+                "example": {
+                    "embedding": [
+                        0.1,
+                        0.2,
+                        0.3
+                    ],
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "metadata": {
+                        "chunk_index": 0,
+                        "page": 1,
+                        "source": "document.pdf"
+                    },
+                    "text": "The quick brown fox jumps over the lazy dog.",
+                    "user_id": "user123"
+                }
+            },
+            "VectorInsertResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "default": "ok"
+                    },
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "VectorInsertResponse",
+                "description": "Response schema for successful vector insertion."
+            }
+        }
+    }
+}
