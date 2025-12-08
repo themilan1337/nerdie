@@ -24,19 +24,22 @@ class StorageService:
         # Generate unique filename
         extension = file.filename.split(".")[-1]
         filename = f"{folder}/{uuid.uuid4()}.{extension}"
-        
+
         blob = self.bucket.blob(filename)
-        
+
         # Upload file content
         content = await file.read()
         blob.upload_from_string(
             content,
             content_type=file.content_type
         )
-        
+
+        # Reset file pointer for subsequent reads
+        await file.seek(0)
+
         # Make public (optional, depending on requirements)
         # blob.make_public()
-        
+
         return blob.public_url
 
 storage_service = StorageService()
