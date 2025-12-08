@@ -44,6 +44,8 @@ services:
     container_name: nerdie-auth
     env_file:
       - ./auth/.env
+    volumes:
+      - ./auth/firebase-credentials.json:/app/firebase-credentials.json:ro
     restart: unless-stopped
     networks:
       - nerdie-network
