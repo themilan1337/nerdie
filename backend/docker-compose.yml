@@ -1,41 +1,124 @@
 services:
+  # ============ SSL Certificates (Certbot) ============
+  certbot:
+    image: certbot/certbot
+    container_name: nerdie-certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    command: >
+      certonly --webroot
+      --webroot-path=/var/www/certbot
+      --email support@nerdie.lol
+      --agree-tos
+      --no-eff-email
+      -d api.nerdie.lol
+      -d auth.api.nerdie.lol
+      -d rag.api.nerdie.lol
+      -d ingest.api.nerdie.lol
+    networks:
+      - nerdie-network
+    restart: "no"
+
+  # ============ Reverse Proxy (Traefik) ============
+  traefik:
+    image: traefik:v2.10
+    container_name: nerdie-traefik
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # HTTP to HTTPS redirect
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+
+      # ACME / Let's Encrypt with webroot
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=support@nerdie.lol"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Traefik dashboard
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+      - "./certbot/www:/var/www/certbot"
+      - "./certbot/conf:/etc/letsencrypt:ro"
+
+    restart: unless-stopped
+    networks:
+      - nerdie-network
+
   # ============ Auth Service ============
   auth:
     build:
       context: ./auth
       dockerfile: Dockerfile
     container_name: nerdie-auth
-    ports:
-      - "8000:8000"
     env_file:
       - ./auth/.env
     restart: unless-stopped
     networks:
       - nerdie-network
+
+    labels:
+      - "traefik.enable=true"
+      # HTTP Router
+      - "traefik.http.routers.auth.rule=Host(`auth.api.nerdie.lol`)"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.routers.auth.tls.certresolver=letsencrypt"
+      - "traefik.http.services.auth.loadbalancer.server.port=8000"
+      # CORS headers
+      - "traefik.http.middlewares.auth-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
+      - "traefik.http.middlewares.auth-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.auth-cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.routers.auth.middlewares=auth-cors"
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/auth/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-      # start_period: 10s
 
-    # ============ RAG Service ============
+  # ============ RAG Service ============
   rag:
     build:
       context: ./rag_service
       dockerfile: Dockerfile
     container_name: nerdie-rag
-    ports:
-      - "8001:8001"
     env_file:
       - ./rag_service/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
     restart: unless-stopped
     networks:
       - nerdie-network
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rag.rule=Host(`rag.api.nerdie.lol`)"
+      - "traefik.http.routers.rag.entrypoints=websecure"
+      - "traefik.http.routers.rag.tls=true"
+      - "traefik.http.routers.rag.tls.certresolver=letsencrypt"
+      - "traefik.http.services.rag.loadbalancer.server.port=8001"
+      # CORS headers
+      - "traefik.http.middlewares.rag-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
+      - "traefik.http.middlewares.rag-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.rag-cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.routers.rag.middlewares=rag-cors"
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 30s
@@ -49,8 +132,6 @@ services:
       context: ./ingestion
       dockerfile: Dockerfile
     container_name: nerdie-ingestion
-    ports:
-      - "8002:8002"
     env_file:
       - ./ingestion/.env
     volumes:
@@ -58,18 +139,27 @@ services:
     restart: unless-stopped
     networks:
       - nerdie-network
+
     depends_on:
       - postgres
 
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ingest.rule=Host(`ingest.api.nerdie.lol`)"
+      - "traefik.http.routers.ingest.entrypoints=websecure"
+      - "traefik.http.routers.ingest.tls=true"
+      - "traefik.http.routers.ingest.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ingest.loadbalancer.server.port=8002"
+      # CORS headers
+      - "traefik.http.middlewares.ingest-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
+      - "traefik.http.middlewares.ingest-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.ingest-cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.routers.ingest.middlewares=ingest-cors"
 
   # ============ PostgreSQL with pgvector ============
   postgres:
-    # Use pg15 to match existing volume data
     image: pgvector/pgvector:pg15
     container_name: nerdie-postgres
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: nerdie
       POSTGRES_PASSWORD: nerdie_password

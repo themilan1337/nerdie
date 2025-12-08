@@ -1,6 +1,7 @@
 # auth service env
 auth/.env
 ingestion/.env
+rag_service/.env
 
 # Firebase credentials
 auth/firebase-credentials.json
