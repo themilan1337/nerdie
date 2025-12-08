@@ -12,6 +12,17 @@ const chatId = route.params.id
 const messageInput = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const isLoading = ref(false)
+const isTyping = ref(false)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const user = ref(null) // Add user ref for avatar
+
+// Format timestamp function
+const formatTime = (timestamp: string | Date) => {
+  if (typeof timestamp === 'string') {
+    return timestamp
+  }
+  return new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+}
 
 const chatInfo = ref({
   title: 'Machine Learning Basics',
@@ -154,7 +165,7 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
           <!-- Avatar -->
           <div class="flex-shrink-0 mt-1">
             <div
-              v-if="message.role === 'assistant'"
+              v-if="message.type === 'assistant'"
               class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shadow-md"
             >
               <Icon icon="hugeicons:ai-brain-01" class="w-4 h-4" />
@@ -177,20 +188,20 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
               <span class="text-sm font-medium text-zinc-900">
-                {{ message.role === 'assistant' ? 'Nerdie AI' : 'You' }}
+                {{ message.type === 'assistant' ? 'Nerdie AI' : 'You' }}
               </span>
               <span class="text-xs text-zinc-300">{{ formatTime(message.timestamp) }}</span>
             </div>
-            
-            <div 
+
+            <div
               class="text-zinc-600 leading-relaxed font-light prose prose-zinc max-w-none"
-              :class="{'bg-zinc-50 p-4 rounded-2xl rounded-tl-sm': message.role === 'user'}"
+              :class="{'bg-zinc-50 p-4 rounded-2xl rounded-tl-sm': message.type === 'user'}"
             >
              {{ message.content }}
             </div>
 
             <!-- Actions -->
-            <div v-if="message.role === 'assistant'" class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div v-if="message.type === 'assistant'" class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <button class="action-btn" title="Copy">
                 <Icon icon="hugeicons:copy-01" class="w-3.5 h-3.5" />
               </button>
@@ -232,17 +243,17 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
           </button>
 
           <textarea
-            v-model="newMessage"
+            v-model="messageInput"
             rows="1"
             placeholder="Ask anything..."
             class="flex-1 py-3 px-2 bg-transparent border-none focus:ring-0 text-zinc-900 placeholder-zinc-400 resize-none max-h-32 font-light"
-            @keydown.enter.prevent="sendMessage"
+            @keydown.enter.prevent="handleSendMessage"
             ref="textareaRef"
           ></textarea>
 
           <button
-            @click="sendMessage"
-            :disabled="!newMessage.trim() && !isTyping"
+            @click="handleSendMessage"
+            :disabled="!messageInput.trim() || isLoading"
             class="p-3 rounded-full bg-black text-white hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
           >
             <Icon icon="hugeicons:sent" class="w-5 h-5" />

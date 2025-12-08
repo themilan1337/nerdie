@@ -36,14 +36,14 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto space-y-8 py-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-2">Profile Settings.</h1>
-        <p class="text-zinc-500 font-light">Manage your account and preferences.</p>
-      </div>
+  <div>
+    <!-- Page Header -->
+    <div class="mb-12">
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">Profile</h1>
+      <p class="text-zinc-500 font-light text-base">Manage your account and preferences</p>
     </div>
+
+    <div class="space-y-8">
 
     <!-- Profile Card -->
     <div class="glass-panel p-8 rounded-[2rem] relative overflow-hidden group">
@@ -69,22 +69,12 @@ const handleLogout = async () => {
         <div class="flex-1 text-center md:text-left space-y-1">
           <h2 class="text-2xl font-medium text-zinc-900">{{ displayName }}</h2>
           <p class="text-zinc-500 font-light">{{ userEmail }}</p>
-          <div class="pt-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 text-xs font-medium text-zinc-600">
-              <Icon icon="hugeicons:check-circle-01" class="w-3.5 h-3.5" />
-              Pro Plan
-            </span>
-          </div>
         </div>
-
-        <button class="px-6 py-2 rounded-full border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-900 font-medium text-sm transition-all duration-300 bg-white shadow-sm">
-          Edit Profile
-        </button>
       </div>
     </div>
 
     <!-- Details Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 gap-6">
       <!-- Personal Info -->
       <div class="glass-panel p-6 rounded-[2rem] space-y-6">
         <h3 class="text-lg font-medium text-zinc-900 flex items-center gap-2">
@@ -108,42 +98,6 @@ const handleLogout = async () => {
           </div>
         </div>
       </div>
-
-      <!-- Preferences -->
-      <div class="glass-panel p-6 rounded-[2rem] space-y-6">
-        <h3 class="text-lg font-medium text-zinc-900 flex items-center gap-2">
-          <Icon icon="hugeicons:settings-01" class="w-5 h-5 text-zinc-400" />
-          Preferences
-        </h3>
-        
-        <div class="space-y-3">
-          <button class="w-full flex items-center justify-between p-4 rounded-xl hover:bg-zinc-50 transition-colors group">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-zinc-50 flex items-center justify-center group-hover:bg-white transition-colors">
-                <Icon icon="hugeicons:moon-02" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
-              </div>
-              <div class="text-left">
-                <p class="font-medium text-zinc-900">Appearance</p>
-                <p class="text-xs text-zinc-400">System Default</p>
-              </div>
-            </div>
-            <Icon icon="hugeicons:arrow-right-01" class="w-4 h-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
-          </button>
-
-          <button class="w-full flex items-center justify-between p-4 rounded-xl hover:bg-zinc-50 transition-colors group">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-zinc-50 flex items-center justify-center group-hover:bg-white transition-colors">
-                <Icon icon="hugeicons:notification-01" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
-              </div>
-              <div class="text-left">
-                <p class="font-medium text-zinc-900">Notifications</p>
-                <p class="text-xs text-zinc-400">Enabled</p>
-              </div>
-            </div>
-            <Icon icon="hugeicons:arrow-right-01" class="w-4 h-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
-          </button>
-        </div>
-      </div>
     </div>
 
     <!-- Danger Zone -->
@@ -161,6 +115,8 @@ const handleLogout = async () => {
           Log Out
         </button>
       </div>
+    </div>
+
     </div>
   </div>
 </template>

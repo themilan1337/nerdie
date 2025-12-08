@@ -2,7 +2,8 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 
-const isSidebarOpen = ref(true)
+const { isSidebarExpanded, toggleSidebar: toggleDesktopSidebar } = useSidebar()
+const isSidebarOpen = ref(false)
 const showLogoutDropdown = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
@@ -33,7 +34,7 @@ const navigation = [
   { name: 'Profile', href: '/dashboard/profile', icon: 'hugeicons:user' },
 ]
 
-const toggleSidebar = () => {
+const toggleMobileSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
 
@@ -69,14 +70,18 @@ const userEmail = computed(() => {
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed inset-y-0 left-0 z-40 w-72 bg-zinc-50 border-r border-zinc-200/50 transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) lg:translate-x-0',
+        'fixed inset-y-0 left-0 z-40 bg-zinc-50 border-r border-zinc-200/50 transition-all duration-300 ease-in-out lg:translate-x-0',
+        isSidebarExpanded ? 'lg:w-72' : 'lg:w-20',
+        'w-72',
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
     >
       <div class="h-full flex flex-col p-6">
         <!-- Logo -->
-        <div class="h-12 flex items-center px-2 mb-8">
-          <h1 class="font-['Questrial'] text-2xl font-bold tracking-tight text-zinc-900">nerdie.</h1>
+        <!-- Logo -->
+        <div class="h-12 flex items-center mb-8 transition-all duration-300" :class="isSidebarExpanded ? 'px-2' : 'justify-center'">
+          <h1 v-if="isSidebarExpanded" class="font-['Questrial'] text-4xl font-bold tracking-tight text-zinc-900 whitespace-nowrap">nerdie.</h1>
+          <h1 v-else class="font-['Questrial'] text-2xl font-bold tracking-tight text-zinc-900">n.</h1>
         </div>
 
         <!-- Navigation -->
@@ -86,10 +91,16 @@ const userEmail = computed(() => {
             :key="item.name"
             :to="item.href"
             class="flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-all duration-300 group relative overflow-hidden"
+            :class="{ 'justify-center !px-0': !isSidebarExpanded }"
             active-class="!bg-black !text-white shadow-lg shadow-black/5"
           >
-            <Icon :icon="item.icon" class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-            <span class="font-medium text-sm tracking-wide">{{ item.name }}</span>
+            <Icon :icon="item.icon" class="w-5 h-5 flex-shrink-0" />
+            <span
+              class="font-medium text-sm tracking-wide whitespace-nowrap overflow-hidden transition-all duration-300"
+              :class="isSidebarExpanded ? 'opacity-100 w-auto ml-3' : 'opacity-0 w-0 hidden'"
+            >
+              {{ item.name }}
+            </span>
           </NuxtLink>
         </nav>
 
@@ -109,22 +120,23 @@ const userEmail = computed(() => {
                 />
                 <div
                   v-else
-                  class="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center ring-2 ring-white shadow-sm"
+                  class="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center ring-2 ring-white shadow-sm flex-shrink-0"
                 >
                   <span class="font-medium text-xs">{{ userInitials }}</span>
                 </div>
-                <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
               </div>
               
-              <div class="flex-1 min-w-0 text-left">
+              <div class="flex-1 min-w-0 text-left transition-all duration-300" :class="{ 'w-0 opacity-0 hidden': !isSidebarExpanded }">
                 <p class="text-sm font-semibold text-zinc-900 truncate group-hover:text-black transition-colors">{{ displayName }}</p>
-                <p class="text-xs text-zinc-500 truncate">Free Plan</p>
               </div>
               
-              <Icon icon="hugeicons:more-horizontal" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-600" />
+              <Icon 
+                v-if="isSidebarExpanded"
+                icon="hugeicons:more-horizontal" 
+                class="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" 
+              />
             </button>
 
-            <!-- Logout dropdown -->
             <Transition
               enter-active-class="transition ease-out duration-200"
               enter-from-class="opacity-0 translate-y-2 scale-95"
@@ -163,24 +175,31 @@ const userEmail = computed(() => {
     <div
       v-if="isSidebarOpen"
       class="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
-      @click="toggleSidebar"
+      @click="toggleMobileSidebar"
     />
 
     <!-- Main content -->
-    <div class="flex-1 flex flex-col overflow-hidden lg:ml-72 transition-all duration-500">
+    <div 
+      class="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
+      :class="isSidebarExpanded ? 'lg:ml-72' : 'lg:ml-20'"
+    >
       <!-- Header -->
-      <header class="h-20 flex items-center justify-between px-8 flex-shrink-0">
+      <header class="h-16 flex items-center border-b border-zinc-200/50 justify-between px-8 flex-shrink-0">
         <div class="flex items-center gap-4">
           <button
-            @click="toggleSidebar"
+            @click="toggleMobileSidebar"
             class="lg:hidden p-2 rounded-xl hover:bg-zinc-100 transition-colors -ml-2"
           >
             <Icon icon="hugeicons:menu-01" class="w-6 h-6 text-zinc-900" />
           </button>
-          
-          <h2 class="text-xl font-medium text-zinc-900 tracking-tight hidden md:block">
-            {{ $route.name === 'dashboard' ? 'Overview' : '' }}
-          </h2>
+
+          <button
+            @click="toggleDesktopSidebar"
+            class="hidden lg:flex p-2 rounded-xl hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-zinc-900"
+            :title="isSidebarExpanded ? 'Collapse Sidebar' : 'Expand Sidebar'"
+          >
+            <Icon :icon="isSidebarExpanded ? 'hugeicons:sidebar-left' : 'hugeicons:sidebar-right'" class="w-6 h-6" />
+          </button>
         </div>
 
         <div class="flex items-center gap-6">
@@ -199,8 +218,8 @@ const userEmail = computed(() => {
       </header>
 
       <!-- Page content -->
-      <main class="flex-1 overflow-y-auto px-8 pb-8">
-        <div class="max-w-[1600px] mx-auto">
+      <main class="flex-1 overflow-y-auto px-8 py-8">
+        <div class="max-w-[1600px] mx-auto page-wrapper">
           <slot />
         </div>
       </main>

@@ -29,7 +29,7 @@ const recentDocuments = [
 
 const quickActions = [
   { name: 'New Chat', description: 'Start a conversation', icon: 'hugeicons:bubble-chat', href: '/dashboard/chat/new', color: 'bg-blue-500' },
-  { name: 'Upload Document', description: 'Add to knowledge base', icon: 'hugeicons:file-text', href: '/dashboard/rag', color: 'bg-green-500' },
+  { name: 'Upload Document', description: 'Add to knowledge base', icon: 'hugeicons:plus-sign-circle', href: '/dashboard/rag', color: 'bg-green-500' },
   { name: 'View Analytics', description: 'Check performance', icon: 'hugeicons:analytics-up', href: '/dashboard/analytics', color: 'bg-purple-500' },
   { name: 'Quick Query', description: 'Fast AI response', icon: 'hugeicons:flash', href: '/dashboard/chat/new', color: 'bg-orange-500' },
 ]
@@ -39,8 +39,8 @@ const quickActions = [
   <div>
     <!-- Page Header -->
     <div class="mb-12">
-      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-2">Morning, Milan.</h1>
-      <p class="text-zinc-500 font-light">Here's your daily intelligence briefing.</p>
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">Overview</h1>
+      <p class="text-zinc-500 font-light text-base">Here's your daily intelligence briefing.</p>
     </div>
 
     <!-- Stats Grid -->
@@ -80,7 +80,7 @@ const quickActions = [
           :to="action.href"
           class="group bg-white border border-zinc-100 p-6 rounded-3xl hover:border-zinc-300 transition-all duration-300 flex flex-col items-center text-center justify-center gap-4 aspect-[4/3]"
         >
-          <div class="w-14 h-14 rounded-full bg-zinc-50 flex items-center justify-center group-hover:bg-zinc-900 transition-all duration-300 group-hover:scale-110 shadow-sm">
+          <div class="w-14 h-14 rounded-full bg-zinc-50 flex items-center justify-center group-hover:bg-zinc-900 transition">
             <Icon :icon="action.icon" class="w-6 h-6 text-zinc-900 group-hover:text-white transition-colors duration-300" />
           </div>
           <div>

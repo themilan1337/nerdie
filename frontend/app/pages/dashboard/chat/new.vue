@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Icon } from '@iconify/vue'
+import { computed } from 'vue'
+
+const { userData, signOut } = useAuth()
+
+const displayName = computed(() => {
+  const fullName = userData.value?.displayName || 'User'
+  return fullName.split(' ')[0]
+})
 
 definePageMeta({
   layout: 'dashboard'
@@ -74,22 +82,19 @@ const handlePromptClick = (prompt: string) => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto py-12 px-6">
+  <div>
     <!-- Header -->
-    <div class="text-center mb-16 space-y-4">
-      <div class="w-20 h-20 bg-black text-white rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-zinc-200 mb-8 transform transition-transform hover:scale-105 duration-500">
-        <Icon icon="hugeicons:ai-brain-01" class="w-10 h-10" />
-      </div>
-      <h1 class="text-5xl font-['Questrial'] font-light tracking-tight text-zinc-900">
-        Good morning, Milan.
+    <div class="mb-12">
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">
+        New Chat
       </h1>
-      <p class="text-xl text-zinc-400 font-light">
-        What shall we explore today?
+      <p class="text-zinc-500 font-light text-base">
+        Start a new conversation with AI
       </p>
     </div>
 
     <!-- Search/Input Area -->
-    <div class="relative max-w-2xl mx-auto mb-20 group">
+    <div class="relative mx-auto mb-20 group">
       <div class="absolute inset-0 bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
       <div class="relative">
         <input
@@ -115,7 +120,7 @@ const handlePromptClick = (prompt: string) => {
       <div
         v-for="category in promptSuggestions"
         :key="category.category"
-        class="group glass-panel rounded-[2rem] p-8 hover:border-zinc-300 transition-all duration-500 hover:-translate-y-1 relative overflow-hidden"
+        class="group glass-panel rounded-[2rem] p-8 transition-all duration-500 relative overflow-hidden"
       >
         <div class="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 translate-x-4 group-hover:translate-x-0 transition-all duration-500">
           <Icon :icon="category.icon" class="w-32 h-32 text-black" />
@@ -134,7 +139,7 @@ const handlePromptClick = (prompt: string) => {
               v-for="prompt in category.prompts"
               :key="prompt"
               @click="handleStartChat(prompt)"
-              class="w-full text-left p-3 rounded-xl hover:bg-zinc-50 text-zinc-500 hover:text-zinc-900 transition-all text-sm font-light group/btn flex items-center justify-between"
+              class="w-full text-left p-3 rounded-xl text-zinc-500 hover:text-zinc-900 transition-all text-sm font-light group/btn flex items-center justify-between"
             >
               <span>{{ prompt }}</span>
               <Icon icon="hugeicons:arrow-right-01" class="w-4 h-4 opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all" />

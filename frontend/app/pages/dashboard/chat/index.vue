@@ -23,6 +23,7 @@ interface Chat {
   lastMessage: string
   timestamp: string
   messageCount: number
+  model?: string
 }
 
 const chats = ref<Chat[]>([
@@ -31,23 +32,39 @@ const chats = ref<Chat[]>([
     title: 'Machine Learning Discussion',
     lastMessage: 'Can you explain how neural networks work?',
     timestamp: '2 hours ago',
-    messageCount: 15
+    messageCount: 15,
+    model: 'gemini'
   },
   {
     id: '2',
     title: 'Python Programming Help',
     lastMessage: 'How do I optimize this code?',
     timestamp: '5 hours ago',
-    messageCount: 8
+    messageCount: 8,
+    model: 'gemini'
   },
   {
     id: '3',
     title: 'Database Design Questions',
     lastMessage: 'What is the best approach for indexing?',
     timestamp: 'Yesterday',
-    messageCount: 23
+    messageCount: 23,
+    model: 'gemini'
   },
 ])
+
+// Format date function
+const formatDate = (timestamp: string | Date) => {
+  if (typeof timestamp === 'string') {
+    return timestamp
+  }
+  return new Date(timestamp).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 const filteredChats = computed(() => {
   let filtered = chats.value
@@ -79,30 +96,15 @@ const deleteChat = (chatId: string, event: Event) => {
 </script>
 
 <template>
-  <div class="p-6 lg:p-8">
+  <div>
     <!-- Page Header -->
-    <div class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 ins">Chat History</h1>
-        <p class="text-gray-500 mt-1">View and manage your conversations</p>
-      </div>
-      <button
-        @click="createNewChat"
-        class="px-6 py-3 bg-black text-white rounded-full font-medium ins hover:bg-gray-800 transition-colors inline-flex items-center gap-2"
-      >
-        <Icon icon="hugeicons:plus-sign" class="w-5 h-5" />
-        New Chat
-      </button>
+    <div class="mb-12">
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">Chat History</h1>
+      <p class="text-zinc-500 font-light text-base">View and manage your conversations</p>
     </div>
 
     <!-- Search and Filters -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-2">Conversations.</h1>
-        <p class="text-zinc-500 font-light">History of your dialogues with the AI.</p>
-      </div>
-
-      <div class="flex items-center gap-4 w-full md:w-auto">
+      <div class="flex items-center mb-8 gap-4 w-full md:w-auto">
         <div class="relative flex-1 md:w-80 group">
           <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
           <input
@@ -120,7 +122,6 @@ const deleteChat = (chatId: string, event: Event) => {
           <Icon icon="hugeicons:plus-sign" class="w-6 h-6" />
         </NuxtLink>
       </div>
-    </div>
 
     <!-- Active/Recent Chats -->
     <div v-if="filteredChats.length > 0" class="grid grid-cols-1 gap-4">
@@ -141,16 +142,16 @@ const deleteChat = (chatId: string, event: Event) => {
           <div class="flex-1 min-w-0 pt-1">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-medium text-zinc-900 truncate pr-4 group-hover:text-black transition-colors">{{ chat.title }}</h3>
-              <span class="text-sm text-zinc-400 font-light">{{ formatDate(chat.updatedAt) }}</span>
+              <span class="text-sm text-zinc-400 font-light">{{ formatDate(chat.timestamp) }}</span>
             </div>
-            
-            <p class="text-zinc-500 line-clamp-2 font-light group-hover:text-zinc-600 transition-colors pr-12">{{ chat.preview }}</p>
-            
+
+            <p class="text-zinc-500 line-clamp-2 font-light group-hover:text-zinc-600 transition-colors pr-12">{{ chat.lastMessage }}</p>
+
             <div class="flex items-center gap-4 mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
               <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-600">
-                {{ chat.messagesCount }} messages
+                {{ chat.messageCount }} messages
               </span>
-              <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-600 capitalize">
+              <span v-if="chat.model" class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-600 capitalize">
                 {{ chat.model }}
               </span>
             </div>

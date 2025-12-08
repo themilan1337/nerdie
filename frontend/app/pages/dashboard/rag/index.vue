@@ -195,7 +195,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 lg:p-8">
+  <div>
     <!-- Success Notification -->
     <Transition name="slide-down">
       <div v-if="showSuccessNotification" class="fixed top-6 right-6 z-50 pointer-events-none">
@@ -220,31 +220,30 @@ onMounted(() => {
       </div>
     </Transition>
 
-    <!-- Header & Stats -->
-    <div class="flex flex-col lg:flex-row gap-8 items-start justify-between">
-      <div class="space-y-2">
-        <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900">Knowledge Base.</h1>
-        <p class="text-zinc-500 font-light max-w-md">Manage documents for RAG processing to enhance AI responses with your data.</p>
-      </div>
+    <!-- Page Header -->
+    <div class="mb-12">
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">RAG Management</h1>
+      <p class="text-zinc-500 font-light text-base">Manage documents for RAG processing to enhance AI responses with your data</p>
+    </div>
 
-      <div class="grid grid-cols-3 gap-4 w-full lg:w-auto">
-        <div class="glass-panel p-4 rounded-2xl min-w-[120px]">
-          <p class="text-xs text-zinc-400 mb-1">Total Docs</p>
-          <p class="text-2xl font-light text-zinc-900">{{ stats.total }}</p>
-        </div>
-        <div class="glass-panel p-4 rounded-2xl min-w-[120px]">
-          <p class="text-xs text-zinc-400 mb-1">Text Chunks</p>
-          <p class="text-2xl font-light text-zinc-900">{{ stats.totalChunks }}</p>
-        </div>
-        <div class="glass-panel p-4 rounded-2xl min-w-[120px]">
-          <p class="text-xs text-zinc-400 mb-1">Embeddings</p>
-          <p class="text-2xl font-light text-zinc-900">{{ stats.totalEmbeddings }}</p>
-        </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="glass-panel p-6 rounded-3xl">
+        <p class="text-sm text-zinc-400 mb-2 font-medium">Total Docs</p>
+        <p class="text-3xl font-light text-zinc-900">{{ stats.total }}</p>
+      </div>
+      <div class="glass-panel p-6 rounded-3xl">
+        <p class="text-sm text-zinc-400 mb-2 font-medium">Text Chunks</p>
+        <p class="text-3xl font-light text-zinc-900">{{ stats.totalChunks }}</p>
+      </div>
+      <div class="glass-panel p-6 rounded-3xl">
+        <p class="text-sm text-zinc-400 mb-2 font-medium">Embeddings</p>
+        <p class="text-3xl font-light text-zinc-900">{{ stats.totalEmbeddings }}</p>
       </div>
     </div>
 
     <!-- Upload Area -->
-    <div class="group relative">
+    <div class="group relative mb-4">
       <div class="absolute inset-0 bg-gradient-to-r from-zinc-100 to-zinc-50 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       <label class="relative block w-full h-48 rounded-[2rem] border-2 border-dashed border-zinc-200 bg-white/50 hover:bg-white hover:border-zinc-300 transition-all cursor-pointer overflow-hidden group-hover:shadow-lg">
         <input
