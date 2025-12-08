@@ -127,27 +127,26 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
     </div>
 
     <!-- Messages Container -->
-    <div class="max-w-3xl mx-auto pb-32">
+    <div class="max-w-3xl pb-32">
       <div class="space-y-6">
 
         <!-- Messages -->
         <div
           v-for="(message, index) in messages"
           :key="message.id"
-          class="group flex gap-5 max-w-3xl mx-auto opacity-0 animate-[slideUp_0.4s_ease-out_forwards]"
-          :style="{ animationDelay: `${index * 0.1}s` }"
+          class="group flex gap-4"
         >
           <!-- Avatar -->
-          <div class="flex-shrink-0 mt-1">
+          <div class="flex-shrink-0">
             <div
               v-if="message.type === 'assistant'"
-              class="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm"
+              class="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center"
             >
-              <Icon icon="hugeicons:ai-brain-01" class="w-4 h-4" />
+              <Icon icon="hugeicons:ai-brain-01" class="w-5 h-5" />
             </div>
             <div
               v-else
-              class="w-8 h-8 rounded-xl bg-white border border-zinc-200 flex items-center justify-center overflow-hidden"
+              class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center overflow-hidden"
             >
               <img
                 v-if="user?.photoURL"
@@ -155,43 +154,41 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
                 alt="User"
                 class="w-full h-full object-cover"
               />
-              <span v-else class="text-xs font-bold text-zinc-700">ME</span>
+              <span v-else class="text-xs font-medium text-zinc-600">U</span>
             </div>
           </div>
 
           <!-- Content -->
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1.5">
-              <span class="text-sm font-semibold text-zinc-900">
+          <div class="flex-1 min-w-0 pt-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-sm font-medium text-zinc-900">
                 {{ message.type === 'assistant' ? 'Nerdie AI' : 'You' }}
               </span>
-              <span class="text-xs text-zinc-400 font-medium">{{ formatTime(message.timestamp) }}</span>
+              <span class="text-xs text-zinc-400">{{ formatTime(message.timestamp) }}</span>
             </div>
 
-            <div
-              class="text-zinc-600 leading-7 font-normal prose prose-zinc prose-p:my-1 prose-headings:text-zinc-900 prose-strong:text-zinc-900 max-w-none text-[15px]"
-            >
+            <div class="text-zinc-600 leading-relaxed text-[15px] whitespace-pre-wrap">
              {{ message.content }}
             </div>
 
             <!-- Sources if available -->
-            <div v-if="message.sources && message.sources.length" class="mt-4 flex flex-wrap gap-2">
-              <div v-for="source in message.sources" :key="source.name" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-zinc-200 rounded-lg text-xs text-zinc-600 hover:border-zinc-300 transition-colors cursor-pointer">
-                <Icon icon="hugeicons:document-attachment" class="w-3.5 h-3.5 text-zinc-400" />
-                <span>{{ source.name }}</span>
-                <span class="text-zinc-400 ml-0.5">p. {{ source.page }}</span>
+            <div v-if="message.sources && message.sources.length" class="mt-3 flex flex-wrap gap-2">
+              <div v-for="source in message.sources" :key="source.name" class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-600 hover:border-zinc-300 transition-colors cursor-pointer">
+                <Icon icon="hugeicons:file-02" class="w-3.5 h-3.5 text-zinc-400" />
+                <span class="font-medium">{{ source.name }}</span>
+                <span class="text-zinc-400">• p.{{ source.page }}</span>
               </div>
             </div>
 
             <!-- Actions -->
-            <div v-if="message.type === 'assistant'" class="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+            <div v-if="message.type === 'assistant'" class="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
               <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Copy">
                 <Icon icon="hugeicons:copy-01" class="w-4 h-4" />
               </button>
-              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Good response">
+              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Good">
                 <Icon icon="hugeicons:thumbs-up" class="w-4 h-4" />
               </button>
-              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Bad response">
+              <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Bad">
                 <Icon icon="hugeicons:thumbs-down" class="w-4 h-4" />
               </button>
               <button class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Regenerate">
@@ -202,88 +199,45 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
         </div>
 
         <!-- Typing Indicator -->
-        <div v-if="isTyping" class="flex gap-5 max-w-3xl mx-auto pl-1">
-          <div class="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm">
-            <Icon icon="hugeicons:ai-brain-01" class="w-4 h-4 animate-pulse" />
+        <div v-if="isTyping" class="flex gap-4">
+          <div class="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center">
+            <Icon icon="hugeicons:ai-brain-01" class="w-5 h-5 animate-pulse" />
           </div>
-          <div class="flex items-center gap-1.5 h-8">
-            <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-            <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-            <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+          <div class="flex items-center gap-1.5 pt-2">
+            <div class="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+            <div class="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Input Area -->
-    <div class="absolute bottom-6 left-0 right-0 z-20 px-4">
-      <div class="max-w-2xl mx-auto w-full">
-        <div class="relative group">
-          <!-- Subtle Glow -->
-          <div class="absolute -inset-1 bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 rounded-[24px] blur opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-          
-          <div class="relative bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-200/50 rounded-[20px] p-2 flex items-end gap-2 transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)]">
-            
-            <button class="p-3 rounded-xl hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors">
-              <Icon icon="hugeicons:attachment-01" class="w-5 h-5" />
-            </button>
+    <div class="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-transparent pt-8 pb-6 z-30 transition-all duration-300">
+      <div class="max-w-3xl mx-auto" style="padding-left: calc(2rem + var(--removed-left-scroll-gutter, 0px)); padding-right: calc(2rem + var(--removed-right-scroll-gutter, 0px));">
+        <div class="bg-white border border-zinc-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-3 flex items-center gap-3">
+          <button class="p-2 rounded-xl hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors flex-shrink-0">
+            <Icon icon="hugeicons:attachment-01" class="w-5 h-5" />
+          </button>
 
-            <textarea
-              v-model="messageInput"
-              rows="1"
-              placeholder="Ask anything..."
-              class="flex-1 py-3 px-1 bg-transparent border-none focus:ring-0 text-zinc-900 placeholder-zinc-400 resize-none max-h-32 text-base"
-              @keydown.enter.prevent="handleSendMessage"
-              ref="textareaRef"
-            ></textarea>
+          <textarea
+            v-model="messageInput"
+            rows="1"
+            placeholder="Ask anything..."
+            class="flex-1 py-2 px-2 bg-transparent border-none focus:ring-0 text-zinc-900 placeholder-zinc-400 resize-none max-h-32 text-[15px] focus:outline-none"
+            @keydown.enter.prevent="handleSendMessage"
+            ref="textareaRef"
+          ></textarea>
 
-            <button
-              @click="handleSendMessage"
-              :disabled="!messageInput.trim() || isLoading"
-              class="p-2.5 rounded-xl bg-zinc-900 text-white hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
-            >
-              <Icon icon="hugeicons:sent" class="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        
-        <div class="text-center mt-3">
-          <p class="text-[10px] text-zinc-400 font-medium tracking-wide opacity-60">
-            AI can make mistakes. Please verify important information.
-          </p>
+          <button
+            @click="handleSendMessage"
+            :disabled="!messageInput.trim() || isLoading"
+            class="p-2.5 rounded-xl bg-zinc-900 text-white hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0"
+          >
+            <Icon icon="hugeicons:sent" class="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Custom scrollbar for this page */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 4px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 4px;
-}
-
-.overflow-y-auto:hover::-webkit-scrollbar-thumb {
-  background: #e4e4e7;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
