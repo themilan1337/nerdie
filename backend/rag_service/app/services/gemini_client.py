@@ -3,7 +3,7 @@ Gemini API Client for RAG Service.
 
 This module provides integration with Google's Gemini API for:
 1. Text embeddings (text-embedding-004)
-2. LLM generation (gemini-1.5-flash)
+2. LLM generation (gemini-2.5-flash)
 
 Uses the official google-generativeai SDK.
 """

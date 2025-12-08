@@ -13,8 +13,8 @@ genai.configure(api_key=settings.GEMINI_API_KEY)
 
 class ProcessingService:
     def __init__(self):
-        # Use gemini-1.5-flash for vision (gemini-pro-vision is deprecated)
-        self.vision_model = genai.GenerativeModel('gemini-1.5-flash')
+        # Use gemini-2.5-flash for vision (gemini-pro-vision is deprecated)
+        self.vision_model = genai.GenerativeModel('gemini-2.5-flash')
 
     async def extract_text_from_pdf(self, file: UploadFile) -> str:
         """Extract text from uploaded PDF file."""

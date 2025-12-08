@@ -86,7 +86,7 @@ curl -X POST http://localhost:8001/rag/query \
 | `POSTGRES_PORT`          | Database port         | 5432               |
 | `GEMINI_API_KEY`         | Google AI API key     | required           |
 | `GEMINI_EMBEDDING_MODEL` | Embedding model       | text-embedding-004 |
-| `GEMINI_LLM_MODEL`       | LLM model             | gemini-1.5-flash   |
+| `GEMINI_LLM_MODEL`       | LLM model             | gemini-2.5-flash   |
 | `TOP_K`                  | Default results count | 5                  |
 
 ## Database Migrations

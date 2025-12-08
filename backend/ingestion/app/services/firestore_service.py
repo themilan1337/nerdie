@@ -165,4 +165,29 @@ class FirestoreService:
         return doc_id
 
 
+    async def get_user_documents(self, user_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all documents for a user.
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            List of document metadata
+        """
+        docs_ref = self.db.collection("documents").document(user_id).collection("files")
+        docs = docs_ref.order_by("created_at", direction=firestore.Query.DESCENDING).get()
+        
+        results = []
+        for doc in docs:
+            data = doc.to_dict()
+            data["id"] = doc.id
+            # Convert datetime to ISO string
+            if "created_at" in data and isinstance(data["created_at"], datetime):
+                data["created_at"] = data["created_at"].isoformat()
+            results.append(data)
+            
+        return results
+
+
 firestore_service = FirestoreService()
