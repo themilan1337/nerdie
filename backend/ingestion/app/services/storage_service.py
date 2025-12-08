@@ -7,7 +7,14 @@ settings = get_settings()
 
 class StorageService:
     def __init__(self):
-        self.bucket = storage.bucket()
+        self._bucket = None
+    
+    @property
+    def bucket(self):
+        """Lazy initialization of Firebase Storage bucket."""
+        if self._bucket is None:
+            self._bucket = storage.bucket()
+        return self._bucket
 
     async def upload_file(self, file: UploadFile, folder: str = "uploads") -> str:
         """
@@ -33,3 +40,4 @@ class StorageService:
         return blob.public_url
 
 storage_service = StorageService()
+

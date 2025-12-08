@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from pgvector.sqlalchemy import Vector
@@ -25,7 +25,7 @@ class TextChunk(Base):
 def init_db():
     # Create vector extension if not exists
     with engine.connect() as conn:
-        conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         conn.commit()
     
     Base.metadata.create_all(bind=engine)

@@ -5,7 +5,7 @@ This model represents vectorized text chunks stored in PostgreSQL with pgvector.
 Each chunk belongs to a user and contains:
 - The original text
 - Vector embedding (768 dimensions for Gemini text-embedding-004)
-- Metadata (source file, page number, etc.)
+- Chunk metadata (source file, page number, etc.)
 """
 
 import uuid
@@ -33,7 +33,7 @@ class DocumentChunk(Base):
         user_id: Owner of the chunk (for multi-tenant isolation)
         text: Original text content of the chunk
         embedding: Vector representation (768 dims for Gemini)
-        metadata: JSON object with source info, page numbers, etc.
+        chunk_metadata: JSON object with source info, page numbers, etc.
         created_at: Timestamp of insertion
     """
     
@@ -67,9 +67,10 @@ class DocumentChunk(Base):
         nullable=False
     )
     
-    # Flexible metadata storage
+    # Flexible metadata storage (renamed from 'metadata' to avoid SQLAlchemy conflict)
     # Can include: source_file, page_number, chunk_index, etc.
-    metadata = Column(
+    chunk_metadata = Column(
+        "metadata",  # Keep the DB column name as 'metadata'
         JSONB,
         nullable=True,
         default=dict
@@ -91,6 +92,7 @@ class DocumentChunk(Base):
             "id": str(self.id),
             "user_id": self.user_id,
             "text": self.text,
-            "metadata": self.metadata,
+            "metadata": self.chunk_metadata,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
+

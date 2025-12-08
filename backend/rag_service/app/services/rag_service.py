@@ -110,7 +110,7 @@ def assemble_context(chunks: List[DocumentChunk]) -> str:
     context_parts = []
     for i, chunk in enumerate(chunks, 1):
         # Extract source info from metadata
-        metadata = chunk.metadata or {}
+        metadata = chunk.chunk_metadata or {}
         source = metadata.get("source", f"Document {i}")
         page = metadata.get("page")
         
@@ -183,7 +183,7 @@ async def rag_query(
     # Step 6: Format response with image support
     chunk_results = []
     for chunk, score in chunks_with_scores:
-        metadata = chunk.metadata or {}
+        metadata = chunk.chunk_metadata or {}
         chunk_type = metadata.get("type", "text")
         image_url = metadata.get("image_url") if chunk_type == "image" else None
         
@@ -256,7 +256,7 @@ async def rag_query_with_threshold(
     # Format response with image support
     chunk_results = []
     for chunk, score in chunks_with_scores:
-        metadata = chunk.metadata or {}
+        metadata = chunk.chunk_metadata or {}
         chunk_type = metadata.get("type", "text")
         image_url = metadata.get("image_url") if chunk_type == "image" else None
         

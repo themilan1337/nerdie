@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     # Firebase Configuration
     FIREBASE_PROJECT_ID: str = os.getenv("FIREBASE_PROJECT_ID", "")
     FIREBASE_API_KEY: str = os.getenv("FIREBASE_API_KEY", "")
-    FIREBASE_CREDENTIALS: str = "firebase-credentials.json"
-    FIREBASE_STORAGE_BUCKET: str = "nerdie-rag.appspot.com" # Kept as it's used in code, though not in user list
+    FIREBASE_CREDENTIALS: str = "/app/firebase-credentials.json"
+    FIREBASE_STORAGE_BUCKET: str = "nerdie-85d0a.appspot.com"
 
     # CORS Configuration
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
