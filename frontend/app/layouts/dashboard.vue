@@ -51,7 +51,7 @@ const handleClickOutside = (event: MouseEvent) => {
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: 'hugeicons:home-01' },
-  { name: 'New Chat', href: '/dashboard/chat/new', icon: 'hugeicons:plus-sign' },
+  { name: 'New Chat', href: '/dashboard/chat/new', icon: 'hugeicons:chat-add-01' },
   { name: 'Chats', href: '/dashboard/chat', icon: 'hugeicons:bubble-chat' },
   { name: 'RAG Management', href: '/dashboard/rag', icon: 'hugeicons:database-01' },
   { name: 'Profile', href: '/dashboard/profile', icon: 'hugeicons:user' },
