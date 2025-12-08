@@ -136,7 +136,7 @@ class FirestoreService:
         }
     
     async def save_document_metadata(self, user_id: str, filename: str, file_url: str, 
-                                      file_type: str, chunks_count: int) -> str:
+                                      file_type: str, chunks_count: int, summary: str = None) -> str:
         """
         Save document metadata to Firestore.
         
@@ -146,6 +146,7 @@ class FirestoreService:
             file_url: Firebase Storage URL
             file_type: Type (pdf, image, text)
             chunks_count: Number of chunks created
+            summary: Optional document summary
             
         Returns:
             Document metadata ID
@@ -153,14 +154,19 @@ class FirestoreService:
         doc_id = str(uuid.uuid4())
         docs_ref = self.db.collection("documents").document(user_id).collection("files")
         
-        docs_ref.document(doc_id).set({
+        data = {
             "filename": filename,
             "file_url": file_url,
             "type": file_type,
             "chunks_count": chunks_count,
             "user_id": user_id,
             "created_at": datetime.utcnow()
-        })
+        }
+        
+        if summary:
+            data["summary"] = summary
+            
+        docs_ref.document(doc_id).set(data)
         
         return doc_id
 
