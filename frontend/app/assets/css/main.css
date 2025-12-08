@@ -1,1 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Questrial&display=swap');
+@import url(https://fonts.googleapis.com/css?family=Instrument+Serif:regular,italic);
+@import url(https://fonts.googleapis.com/css?family=Questrial:regular);
+@import url('https://fonts.cdnfonts.com/css/google-sans');
+
 @import "tailwindcss";
+
+.ins {
+    font-family: 'Product Sans';
+}
+
+@layer base {
+
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+}
+
+@custom-variant hover (&:hover);
