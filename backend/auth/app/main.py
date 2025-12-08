@@ -29,12 +29,43 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="Nerdie Auth Service",
-    description="Authentication microservice using Firebase Auth",
-    version="1.0.0",
+    title="🔐 Nerdie Auth Service",
+    description="""
+    ## Google Firebase Authentication Service
+
+    Микросервис авторизации для Nerdie, работающий **только через Google OAuth** с использованием Firebase.
+
+    ### 🚀 Основные возможности:
+    - ✅ Авторизация через Google OAuth (Firebase)
+    - ✅ JWT токены с автоматическим обновлением
+    - ✅ Защищённые endpoints с Bearer токеном
+    - ✅ Получение информации о пользователе
+    - ✅ CORS настроен для фронтенда
+
+    ### 📚 Документация:
+    - [Swagger UI](/docs) - интерактивная документация API
+    - [ReDoc](/redoc) - альтернативная документация
+    - Примеры запросов в файле `API_EXAMPLES.md`
+
+    ### 🔗 Endpoints:
+    - `POST /auth/google` - Авторизация через Google
+    - `GET /auth/me` - Получить текущего пользователя
+    - `GET /auth/health` - Health check
+
+    ### ⚠️ Важно:
+    Email/password авторизация **удалена**. Только Google OAuth!
+    """,
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
+    contact={
+        "name": "Nerdie Team",
+        "url": "https://github.com/your-org/nerdie",
+    },
+    license_info={
+        "name": "MIT",
+    }
 )
 
 # Get settings
