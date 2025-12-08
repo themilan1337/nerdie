@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { LogOut, Mail, Calendar } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -68,7 +68,7 @@ const handleLogout = async () => {
         <div class="space-y-4 mb-8">
           <div class="p-4 bg-gray-50 rounded-xl">
             <div class="flex items-center gap-3">
-              <Mail class="w-5 h-5 text-gray-400" />
+              <Icon icon="hugeicons:mail-01" class="w-5 h-5 text-gray-400" />
               <div>
                 <p class="text-xs text-gray-500">Email Address</p>
                 <p class="text-sm font-medium text-gray-900">{{ userEmail }}</p>
@@ -78,7 +78,7 @@ const handleLogout = async () => {
 
           <div class="p-4 bg-gray-50 rounded-xl">
             <div class="flex items-center gap-3">
-              <Calendar class="w-5 h-5 text-gray-400" />
+              <Icon icon="hugeicons:calendar-01" class="w-5 h-5 text-gray-400" />
               <div>
                 <p class="text-xs text-gray-500">Account Status</p>
                 <p class="text-sm font-medium text-green-600">Active</p>
@@ -93,7 +93,7 @@ const handleLogout = async () => {
             @click="handleLogout"
             class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium ins transition-colors"
           >
-            <LogOut class="w-5 h-5" />
+            <Icon icon="hugeicons:logout-01" class="w-5 h-5" />
             Logout
           </button>
         </div>

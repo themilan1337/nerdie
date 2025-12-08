@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Upload, FileText, Image as ImageIcon, File, Trash2, Download, Search, Filter, MoreVertical, Eye, CheckCircle, Clock, AlertCircle, X } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
 import type { Document } from '~/types/ingestion'
 
 definePageMeta({
@@ -167,13 +167,13 @@ const handleReprocess = async (doc: Document) => {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'processed':
-      return { color: 'bg-green-100 text-green-700', icon: CheckCircle, text: 'Processed' }
+      return { color: 'bg-green-100 text-green-700', icon: 'hugeicons:check-circle-01', text: 'Processed' }
     case 'processing':
-      return { color: 'bg-blue-100 text-blue-700', icon: Clock, text: 'Processing' }
+      return { color: 'bg-blue-100 text-blue-700', icon: 'hugeicons:clock-01', text: 'Processing' }
     case 'failed':
-      return { color: 'bg-red-100 text-red-700', icon: AlertCircle, text: 'Failed' }
+      return { color: 'bg-red-100 text-red-700', icon: 'hugeicons:alert-circle', text: 'Failed' }
     default:
-      return { color: 'bg-gray-100 text-gray-700', icon: Clock, text: 'Unknown' }
+      return { color: 'bg-gray-100 text-gray-700', icon: 'hugeicons:clock-01', text: 'Unknown' }
   }
 }
 
@@ -197,12 +197,12 @@ onMounted(() => {
     <Transition name="slide-down">
       <div
         v-if="showSuccessNotification"
-        class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3 max-w-md"
+        class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-2xl flex items-center gap-3 max-w-md"
       >
-        <CheckCircle class="w-5 h-5 flex-shrink-0" />
+        <Icon icon="hugeicons:check-circle-01" class="w-5 h-5 flex-shrink-0" />
         <p class="flex-1 text-sm font-medium">{{ successMessage }}</p>
         <button @click="showSuccessNotification = false" class="flex-shrink-0">
-          <X class="w-5 h-5" />
+          <Icon icon="hugeicons:cancel-01" class="w-5 h-5" />
         </button>
       </div>
     </Transition>
@@ -211,12 +211,12 @@ onMounted(() => {
     <Transition name="slide-down">
       <div
         v-if="showErrorNotification"
-        class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3 max-w-md"
+        class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-2xl flex items-center gap-3 max-w-md"
       >
-        <AlertCircle class="w-5 h-5 flex-shrink-0" />
+        <Icon icon="hugeicons:alert-circle" class="w-5 h-5 flex-shrink-0" />
         <p class="flex-1 text-sm font-medium">{{ errorMessage }}</p>
         <button @click="showErrorNotification = false" class="flex-shrink-0">
-          <X class="w-5 h-5" />
+          <Icon icon="hugeicons:cancel-01" class="w-5 h-5" />
         </button>
       </div>
     </Transition>
@@ -255,7 +255,7 @@ onMounted(() => {
     <div class="bg-white rounded-2xl border-2 border-dashed border-gray-300 p-12 mb-8 hover:border-gray-400 transition-colors">
       <div class="text-center">
         <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-          <Upload class="w-8 h-8 text-white" />
+          <Icon icon="hugeicons:upload-01" class="w-8 h-8 text-white" />
         </div>
         <h3 class="text-xl font-bold text-gray-900 ins mb-2">Upload Documents</h3>
         <p class="text-gray-500 mb-6">Drag and drop files here, or click to browse</p>
@@ -277,7 +277,7 @@ onMounted(() => {
                 : 'bg-black text-white hover:bg-gray-800 cursor-pointer'
             ]"
           >
-            <Upload class="w-4 h-4" />
+            <Icon icon="hugeicons:upload-01" class="w-4 h-4" />
             {{ isIngesting ? 'Processing...' : 'Choose Files' }}
           </span>
         </label>
@@ -305,7 +305,7 @@ onMounted(() => {
       <div class="flex flex-col md:flex-row gap-4">
         <!-- Search -->
         <div class="flex-1 relative">
-          <Search class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Icon icon="hugeicons:search-01" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             v-model="searchQuery"
             type="text"
@@ -316,7 +316,7 @@ onMounted(() => {
 
         <!-- Filter Dropdown -->
         <div class="relative">
-          <Filter class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Icon icon="hugeicons:filter" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <select
             v-model="selectedFilter"
             class="pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none cursor-pointer min-w-[200px]"
@@ -375,7 +375,7 @@ onMounted(() => {
                     getStatusBadge(doc.status).color
                   ]"
                 >
-                  <component :is="getStatusBadge(doc.status).icon" class="w-3 h-3" />
+                  <Icon :icon="getStatusBadge(doc.status).icon" class="w-3 h-3" />
                   {{ getStatusBadge(doc.status).text }}
                 </span>
               </td>
@@ -429,7 +429,7 @@ onMounted(() => {
         <!-- Empty State -->
         <div v-if="filteredDocuments.length === 0" class="text-center py-12">
           <div class="w-16 h-16 bg-gray-100 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-            <FileText class="w-8 h-8 text-gray-400" />
+            <Icon icon="hugeicons:file-text" class="w-8 h-8 text-gray-400" />
           </div>
           <h3 class="text-lg font-bold text-gray-900 ins mb-2">No documents found</h3>
           <p class="text-gray-500">{{ documents.length === 0 ? 'Upload your first document to get started' : 'Try adjusting your search or filters' }}</p>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
-import { Send, Paperclip, MoreVertical, Download, Copy, ThumbsUp, ThumbsDown, RefreshCw } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -118,10 +118,10 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
         </div>
         <div class="flex items-center gap-2">
           <button class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <Download class="w-5 h-5 text-gray-600" />
+            <Icon icon="hugeicons:download-01" class="w-5 h-5 text-gray-600" />
           </button>
           <button class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <MoreVertical class="w-5 h-5 text-gray-600" />
+            <Icon icon="hugeicons:more-vertical" class="w-5 h-5 text-gray-600" />
           </button>
         </div>
       </div>
@@ -203,28 +203,28 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
                   class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                   title="Copy"
                 >
-                  <Copy class="w-3.5 h-3.5 text-gray-400" />
+                  <Icon icon="hugeicons:copy-01" class="w-3.5 h-3.5 text-gray-400" />
                 </button>
                 <button
                   @click="handleFeedback(message.id, 'positive')"
                   class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                   title="Good response"
                 >
-                  <ThumbsUp class="w-3.5 h-3.5 text-gray-400" />
+                  <Icon icon="hugeicons:thumbs-up" class="w-3.5 h-3.5 text-gray-400" />
                 </button>
                 <button
                   @click="handleFeedback(message.id, 'negative')"
                   class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                   title="Bad response"
                 >
-                  <ThumbsDown class="w-3.5 h-3.5 text-gray-400" />
+                  <Icon icon="hugeicons:thumbs-down" class="w-3.5 h-3.5 text-gray-400" />
                 </button>
                 <button
                   @click="handleRegenerateResponse"
                   class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                   title="Regenerate"
                 >
-                  <RefreshCw class="w-3.5 h-3.5 text-gray-400" />
+                  <Icon icon="hugeicons:refresh" class="w-3.5 h-3.5 text-gray-400" />
                 </button>
               </div>
             </div>
@@ -262,7 +262,7 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
       <div class="max-w-4xl mx-auto">
         <div class="flex items-end gap-3">
           <button class="p-3 rounded-xl hover:bg-gray-100 transition-colors">
-            <Paperclip class="w-5 h-5 text-gray-600" />
+            <Icon icon="hugeicons:attachment" class="w-5 h-5 text-gray-600" />
           </button>
 
           <div class="flex-1">
@@ -286,7 +286,7 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             ]"
           >
-            <Send class="w-5 h-5" />
+            <Icon icon="hugeicons:sent" class="w-5 h-5" />
           </button>
         </div>
 

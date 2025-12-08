@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Home, MessageSquare, Database, User, Plus, Menu, X, LogOut } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
 
 const isSidebarOpen = ref(true)
 const showLogoutDropdown = ref(false)
@@ -26,11 +26,11 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'New Chat', href: '/dashboard/chat/new', icon: Plus },
-  { name: 'Chats', href: '/dashboard/chat', icon: MessageSquare },
-  { name: 'RAG Management', href: '/dashboard/rag', icon: Database },
-  { name: 'Profile', href: '/dashboard/profile', icon: User },
+  { name: 'Dashboard', href: '/dashboard', icon: 'hugeicons:home-01' },
+  { name: 'New Chat', href: '/dashboard/chat/new', icon: 'hugeicons:plus-sign' },
+  { name: 'Chats', href: '/dashboard/chat', icon: 'hugeicons:bubble-chat' },
+  { name: 'RAG Management', href: '/dashboard/rag', icon: 'hugeicons:database-01' },
+  { name: 'Profile', href: '/dashboard/profile', icon: 'hugeicons:user' },
 ]
 
 const toggleSidebar = () => {
@@ -88,7 +88,7 @@ const userEmail = computed(() => {
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-all group text-sm"
             active-class="bg-black text-white hover:bg-black/90"
           >
-            <component :is="item.icon" class="w-5 h-5" />
+            <Icon :icon="item.icon" class="w-5 h-5" />
             <span class="ins font-medium">{{ item.name }}</span>
           </NuxtLink>
         </nav>
@@ -129,21 +129,21 @@ const userEmail = computed(() => {
             >
               <div
                 v-if="showLogoutDropdown"
-                class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+                class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg overflow-hidden"
               >
                 <NuxtLink
                   to="/dashboard/profile"
                   class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-all text-sm text-gray-700"
                   @click="showLogoutDropdown = false"
                 >
-                  <User class="w-4 h-4" />
+                  <Icon icon="hugeicons:user" class="w-4 h-4" />
                   <span>Profile</span>
                 </NuxtLink>
                 <button
                   @click="handleLogout"
                   class="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-50 transition-all text-sm text-red-600"
                 >
-                  <LogOut class="w-4 h-4" />
+                  <Icon icon="hugeicons:logout-01" class="w-4 h-4" />
                   <span>Logout</span>
                 </button>
               </div>
@@ -168,7 +168,7 @@ const userEmail = computed(() => {
           @click="toggleSidebar"
           class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors mr-3"
         >
-          <Menu class="w-5 h-5 text-gray-700" />
+          <Icon icon="hugeicons:menu-01" class="w-5 h-5 text-gray-700" />
         </button>
 
         <div class="flex-1 flex items-center justify-between gap-4">
