@@ -1,25 +1,4 @@
 services:
-  # ============ SSL Certificates (Certbot) ============
-  certbot:
-    image: certbot/certbot
-    container_name: nerdie-certbot
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    command: >
-      certonly --webroot
-      --webroot-path=/var/www/certbot
-      --email support@nerdie.lol
-      --agree-tos
-      --no-eff-email
-      -d api.nerdie.lol
-      -d auth.api.nerdie.lol
-      -d rag.api.nerdie.lol
-      -d ingest.api.nerdie.lol
-    networks:
-      - nerdie-network
-    restart: "no"
-
   # ============ Reverse Proxy (Traefik) ============
   traefik:
     image: traefik:v2.10
