@@ -20,11 +20,21 @@ async def lifespan(app: FastAPI):
     Initializes Firebase on startup.
     """
     # Startup
-    firebase_client.initialize_firebase()
-    print("✅ Firebase initialized successfully")
+    import logging
+    logger = logging.getLogger("uvicorn")
+
+    try:
+        logger.info("🔥 Initializing Firebase...")
+        firebase_client.initialize_firebase()
+        logger.info("✅ Firebase initialized successfully")
+    except Exception as e:
+        logger.error(f"❌ Firebase initialization failed: {e}")
+        raise
+
     yield
+
     # Shutdown
-    print("👋 Auth service shutting down")
+    logger.info("👋 Auth service shutting down")
 
 
 # Create FastAPI application
@@ -81,7 +91,12 @@ app.add_middleware(
 )
 
 # Include routers
+import logging
+logger = logging.getLogger("uvicorn")
+logger.info("📋 Registering auth router...")
 app.include_router(auth_router.router)
+logger.info(f"✅ Router registered with prefix: {auth_router.router.prefix}")
+logger.info(f"📍 Available routes: {[route.path for route in app.routes]}")
 
 
 # Root endpoint
