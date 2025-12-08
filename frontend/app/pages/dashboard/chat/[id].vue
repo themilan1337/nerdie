@@ -119,41 +119,16 @@ const handleFeedback = (messageId: number, type: 'positive' | 'negative') => {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-4rem)] flex flex-col relative">
-    <!-- Chat Header -->
-    <div class="absolute top-0 left-0 right-0 z-10 px-6 py-4 flex items-center justify-between bg-zinc-50/80 backdrop-blur-xl border-b border-zinc-200/50">
-      <div>
-        <h1 class="text-lg font-['Questrial'] text-zinc-900 tracking-tight">{{ chatInfo.title }}</h1>
-        <div class="flex items-center gap-2 text-xs text-zinc-500">
-          <span>{{ chatInfo.messageCount }} messages</span>
-          <span class="w-1 h-1 rounded-full bg-zinc-300"></span>
-          <span>{{ chatInfo.createdAt }}</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-1">
-        <button class="p-2 rounded-xl hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-zinc-900">
-          <Icon icon="hugeicons:download-01" class="w-5 h-5" />
-        </button>
-        <button class="p-2 rounded-xl hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-zinc-900">
-          <Icon icon="hugeicons:more-vertical" class="w-5 h-5" />
-        </button>
-      </div>
+  <div>
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-['Questrial'] font-light tracking-tight text-zinc-900 mb-3">{{ chatInfo.title }}</h1>
+      <p class="text-zinc-500 font-light text-base">{{ chatInfo.messageCount }} messages • {{ chatInfo.createdAt }}</p>
     </div>
 
     <!-- Messages Container -->
-    <div
-      ref="messagesContainer"
-      class="flex-1 overflow-y-auto pt-24 pb-32 px-4 scroll-smooth"
-    >
-      <div class="max-w-3xl mx-auto space-y-8">
-        <!-- Welcome Message -->
-        <div class="text-center py-12">
-          <div class="w-16 h-16 bg-white border border-zinc-200 shadow-sm rounded-3xl mx-auto mb-6 flex items-center justify-center">
-            <Icon icon="hugeicons:bubble-chat-spark-01" class="w-8 h-8 text-zinc-900" />
-          </div>
-          <h2 class="text-2xl font-['Questrial'] text-zinc-900 mb-2 tracking-tight">{{ chatInfo.title }}</h2>
-          <p class="text-zinc-500 text-sm">Reviewing conversation history and details</p>
-        </div>
+    <div class="max-w-3xl mx-auto pb-32">
+      <div class="space-y-6">
 
         <!-- Messages -->
         <div
