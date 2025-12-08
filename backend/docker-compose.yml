@@ -145,7 +145,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ingest.rule=Host(`inges.nerdie.lol`)"
+      - "traefik.http.routers.ingest.rule=Host(`ingest.nerdie.lol`)"
       - "traefik.http.routers.ingest.entrypoints=websecure"
       - "traefik.http.routers.ingest.tls=true"
       - "traefik.http.routers.ingest.tls.certresolver=letsencrypt"
