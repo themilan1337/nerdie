@@ -25,28 +25,52 @@ class EmbeddingService:
             print(f"Error generating embedding: {e}")
             raise e
 
-    def chunk_text(self, text: str, chunk_size: int = 300) -> List[str]:
+    def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 100) -> List[str]:
         """
-        Split text into chunks of approximately chunk_size words.
-        Simple implementation - can be enhanced with overlap or sentence splitting.
+        Split text into chunks with overlap for better context preservation.
+        
+        Uses character-based splitting with sentence boundary awareness.
+        
+        Args:
+            text: Text to split
+            chunk_size: Target size in characters (default 500)
+            overlap: Overlap between chunks in characters (default 100)
+            
+        Returns:
+            List of text chunks
         """
-        words = text.split()
+        if not text or len(text) < chunk_size:
+            return [text] if text else []
+        
         chunks = []
-        current_chunk = []
-        current_count = 0
+        start = 0
+        text_length = len(text)
         
-        for word in words:
-            current_chunk.append(word)
-            current_count += 1
+        while start < text_length:
+            # Find end position
+            end = start + chunk_size
             
-            if current_count >= chunk_size:
-                chunks.append(" ".join(current_chunk))
-                current_chunk = []
-                current_count = 0
+            if end >= text_length:
+                # Last chunk
+                chunks.append(text[start:].strip())
+                break
+            
+            # Try to break at sentence boundary
+            best_break = end
+            for boundary in ['. ', '.\n', '! ', '? ', '\n\n', '\n']:
+                pos = text.rfind(boundary, start + chunk_size // 2, end)
+                if pos != -1:
+                    best_break = pos + len(boundary)
+                    break
+            
+            chunk = text[start:best_break].strip()
+            if chunk:
+                chunks.append(chunk)
+            
+            # Move start with overlap
+            start = best_break - overlap if best_break > overlap else best_break
         
-        if current_chunk:
-            chunks.append(" ".join(current_chunk))
-            
         return chunks
 
 embedding_service = EmbeddingService()
+

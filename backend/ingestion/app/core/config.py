@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # Gemini API Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_EMBEDDING_MODEL: str = os.getenv("GEMINI_EMBEDDING_MODEL", "models/embedding-001")
-    GEMINI_LLM_MODEL: str = os.getenv("GEMINI_LLM_MODEL", "gemini-2.5-flash")
+    GEMINI_LLM_MODEL: str = os.getenv("GEMINI_LLM_MODEL", "gemini-1.5-flash")
 
     # Vector Search Configuration
     EMBEDDING_DIMENSION: int = int(os.getenv("EMBEDDING_DIMENSION", "768"))
@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     FIREBASE_API_KEY: str = os.getenv("FIREBASE_API_KEY", "")
     FIREBASE_CREDENTIALS: str = "/app/firebase-credentials.json"
     FIREBASE_STORAGE_BUCKET: str = "nerdie-85d0a.appspot.com"
+
+    # RAG Service Configuration
+    RAG_SERVICE_URL: str = os.getenv("RAG_SERVICE_URL", "http://rag:8001")
 
     # CORS Configuration
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
