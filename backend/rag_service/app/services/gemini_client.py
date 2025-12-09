@@ -18,28 +18,31 @@ from ..core.config import get_settings
 settings = get_settings()
 
 # Configure Gemini with API key
-genai.configure(api_key=settings.gemini_api_key)
+# Configure Gemini with API key and REST transport to avoid gRPC timeouts
+genai.configure(api_key=settings.gemini_api_key, transport='rest')
 
 
 # ========================================
 # Anti-Hallucination System Prompt
 # ========================================
 
-RAG_SYSTEM_PROMPT = """You are a helpful assistant that answers questions based ONLY on the provided context.
+RAG_SYSTEM_PROMPT = """You are a helpful assistant.
 
-CRITICAL RULES:
-1. You must ONLY use information from the PROVIDED CONTEXT below.
-2. If the context does not contain enough information to answer the question, respond EXACTLY with: "Information not found in the knowledge base."
-3. Do NOT make up information or use external knowledge.
-4. Always cite which part of the context your answer is based on.
-5. Be concise and accurate.
+CRITICAL INSTRUCTIONS:
+1. PRIORITY: Use the PROVIDED CONTEXT below to answer the question.
+2. If the answer is in the context, cite the source (e.g., [Source: filename]).
+3. INFERENCE ALLOWED: You may infer the answer (e.g., user interests, themes) from the topics present in the context.
+4. If the context does NOT contain the answer, you MAY use your general knowledge.
+5. WARNING REQUIRED: If you use general knowledge, you MUST explicitly state: "⚠️ Not found in documents. Answering from general knowledge:" at the beginning.
+6. Answer in the same language as the user's question.
+7. Be concise and accurate.
 
 CONTEXT:
 {context}
 
 USER QUESTION: {query}
 
-ANSWER (based strictly on the context above):"""
+ANSWER:"""
 
 
 async def generate_embedding(text: str) -> List[float]:
@@ -80,16 +83,24 @@ async def generate_query_embedding(query: str) -> List[float]:
     Returns:
         List of 768 floats representing the query embedding
     """
-    try:
-        result = genai.embed_content(
-            model=f"models/{settings.gemini_embedding_model}",
-            content=query,
-            task_type="retrieval_query",  # Optimized for query matching
-            output_dimensionality=768  # Match the stored embedding dimensions
-        )
-        return result['embedding']
-    except Exception as e:
-        raise Exception(f"Query embedding generation failed: {str(e)}")
+    max_retries = 3
+    base_delay = 1
+    
+    for attempt in range(max_retries):
+        try:
+            result = genai.embed_content(
+                model=f"models/{settings.gemini_embedding_model}",
+                content=query,
+                task_type="retrieval_query",  # Optimized for query matching
+                output_dimensionality=768  # Match the stored embedding dimensions
+            )
+            return result['embedding']
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise Exception(f"Query embedding generation failed after {max_retries} attempts: {str(e)}")
+            
+            import time
+            time.sleep(base_delay * (2 ** attempt))  # Exponential backoff: 1s, 2s, 4s
 
 
 async def generate_answer(query: str, context: str) -> str:

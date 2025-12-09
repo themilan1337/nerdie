@@ -62,7 +62,7 @@ class ProcessingService:
             # Truncate text if too long to avoid token limits (approx 10k chars is safe for flash)
             truncated_text = text[:30000]
             
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             response = model.generate_content(
                 f"Please provide a concise 2-3 sentence summary of the following document:\n\n{truncated_text}"
             )

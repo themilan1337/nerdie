@@ -18,12 +18,12 @@ genai.configure(api_key=settings.GEMINI_API_KEY)
 EXTRACTION_PROMPT = """Extract entities and relations from this text.
 
 Return ONLY valid JSON in this exact format:
-{
+{{
   "entities": ["entity1", "entity2", ...],
   "relations": [
-    {"source": "entity1", "target": "entity2", "type": "relation_type"}
+    {{"source": "entity1", "target": "entity2", "type": "relation_type"}}
   ]
-}
+}}
 
 Rules:
 - Entities should be nouns, concepts, people, places, organizations

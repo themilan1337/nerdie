@@ -13,8 +13,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      ingestionServiceUrl: process.env.NUXT_PUBLIC_INGESTION_API_URL || 'https://ingest.nerdie.lol',
-      ragServiceUrl: process.env.NUXT_PUBLIC_RAG_API_URL || 'https://rag.nerdie.lol',
+      // ingestionServiceUrl: process.env.NUXT_PUBLIC_INGESTION_API_URL || 'https://ingest.nerdie.lol',
+      // ragServiceUrl: process.env.NUXT_PUBLIC_RAG_API_URL || 'https://rag.nerdie.lol',
+      ingestionServiceUrl: process.env.NUXT_PUBLIC_INGESTION_API_URL || 'http://localhost:8002',
+      ragServiceUrl: process.env.NUXT_PUBLIC_RAG_API_URL || 'http://localhost:8001',
     },
   },
 });

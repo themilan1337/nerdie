@@ -129,7 +129,7 @@ async def rag_query(
     db: AsyncSession,
     query: str,
     user_id: str,
-    top_k: int = 5
+    top_k: int = 10,
 ) -> Dict[str, Any]:
     """
     Execute full RAG pipeline.
@@ -150,10 +150,27 @@ async def rag_query(
     Returns:
         Dict with answer, chunks, context_used, and scores
     """
+import logging
+
+# Configure logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+async def rag_query(
+    db: AsyncSession,
+    query: str,
+    user_id: str,
+    top_k: int = 10,
+) -> Dict[str, Any]:
+    """
+    Execute full RAG pipeline.
+    """
     # Step 1: Generate query embedding
+    logger.info(f"Generating embedding for query: {query}")
     query_embedding = await gemini_client.generate_query_embedding(query)
     
     # Step 2: Similarity search
+    logger.info(f"Performing similarity search with top_k={top_k}")
     chunks_with_scores = await similarity_search(
         db=db,
         query_embedding=query_embedding,
@@ -165,8 +182,11 @@ async def rag_query(
     chunks = [c for c, _ in chunks_with_scores]
     scores = [s for _, s in chunks_with_scores]
     
+    logger.info(f"Retrieved {len(chunks)} chunks. Scores: {scores}")
+    
     # Step 3: Check if we found relevant context
     if not chunks:
+        logger.info("No chunks found.")
         return {
             "answer": "No relevant data found in the knowledge base.",
             "chunks": [],
@@ -176,9 +196,12 @@ async def rag_query(
     
     # Step 4: Assemble context
     context = assemble_context(chunks)
+    logger.info(f"Assembled context length: {len(context)} chars")
     
     # Step 5: Generate answer with Gemini
+    logger.info("Generating answer with Gemini...")
     answer = await gemini_client.generate_answer(query, context)
+    logger.info(f"Generated answer: {answer[:100]}...")
     
     # Step 6: Format response with image support
     chunk_results = []
@@ -208,7 +231,7 @@ async def rag_query_with_threshold(
     db: AsyncSession,
     query: str,
     user_id: str,
-    top_k: int = 5,
+    top_k: int = 10,
     score_threshold: float = 0.5
 ) -> Dict[str, Any]:
     """
