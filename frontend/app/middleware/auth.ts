@@ -15,7 +15,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const isAuthenticated = () => {
     try {
       const idToken = localStorage.getItem('idToken')
-      console.log("AUTH MIDDLEWARE", idToken)
       const userData = localStorage.getItem('userData')
       console.log('🔍 [AUTH MIDDLEWARE] Checking authentication...')
       console.log('🔍 [AUTH MIDDLEWARE] Has idToken?', !!idToken)
