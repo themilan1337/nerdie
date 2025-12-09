@@ -99,10 +99,12 @@ const handleSendMessage = async () => {
           type: 'assistant',
           content: response.answer,
           timestamp: new Date(),
-          sources: response.chunks.map((c: any) => ({
-              name: c.metadata?.source || 'Unknown',
-              page: c.metadata?.page
-          }))
+          sources: response.chunks
+            .map((c: any) => ({
+                name: c.metadata?.source || 'Unknown',
+                page: c.metadata?.page
+            }))
+            .filter((s: any) => s.name !== 'Unknown')
       })
 
   } catch (error) {
@@ -228,7 +230,7 @@ const handleRegenerateResponse = () => {
 
     <!-- Input Area -->
     <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-transparent pt-8 pb-6 z-30 transition-all duration-300">
-      <div class="max-w-3xl mr-auto" :style="{ paddingRight: '2rem' }"> <!-- Adjusted styling for alignment -->
+      <div class="max-w-3xl mr-auto"> <!-- Adjusted styling for alignment -->
         <div class="bg-white border border-zinc-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-3 flex items-center gap-3">
           <textarea
             v-model="messageInput"
