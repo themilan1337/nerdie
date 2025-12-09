@@ -53,7 +53,9 @@ class GraphExtractionService:
         """
         try:
             prompt = EXTRACTION_PROMPT.format(text=text[:2000])  # Limit text length
-            
+
+            print(f"🔍 Calling Gemini model: {settings.GEMINI_LLM_MODEL}")
+
             response = self.model.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
@@ -61,27 +63,54 @@ class GraphExtractionService:
                     max_output_tokens=1024,
                 )
             )
-            
+
+            print(f"📥 Got response from Gemini")
+
             # Parse JSON response
             response_text = response.text.strip()
-            
-            # Handle markdown code blocks
+
+            print(f"📝 Raw response (first 300 chars): {response_text[:300]}")
+
+            # Handle markdown code blocks (```json ... ``` or ``` ... ```)
             if response_text.startswith("```"):
+                # Remove first line (```json or ```)
                 lines = response_text.split("\n")
-                response_text = "\n".join(lines[1:-1])
-            
+                # Remove first and last line
+                response_text = "\n".join(lines[1:-1]).strip()
+
+            # Remove any remaining backticks
+            response_text = response_text.replace("```", "").strip()
+
+            # Try to find JSON object in the response
+            start_idx = response_text.find("{")
+            end_idx = response_text.rfind("}") + 1
+
+            if start_idx != -1 and end_idx > start_idx:
+                response_text = response_text[start_idx:end_idx]
+
+            print(f"🔧 Cleaned response (first 300 chars): {response_text[:300]}")
+
             result = json.loads(response_text)
-            
+
+            entities = result.get("entities", [])
+            relations = result.get("relations", [])
+
+            print(f"✅ Graph extraction success: {len(entities)} entities, {len(relations)} relations")
+
             return {
-                "entities": result.get("entities", []),
-                "relations": result.get("relations", [])
+                "entities": entities,
+                "relations": relations
             }
-            
+
         except json.JSONDecodeError as e:
-            print(f"Failed to parse graph extraction response: {e}")
+            print(f"❌ JSON PARSE ERROR: {e}")
+            print(f"❌ Response text that failed: {response_text if 'response_text' in locals() else 'N/A'}")
             return {"entities": [], "relations": []}
         except Exception as e:
-            print(f"Graph extraction error: {e}")
+            print(f"❌ EXCEPTION TYPE: {type(e).__name__}")
+            print(f"❌ EXCEPTION MESSAGE: {str(e)}")
+            import traceback
+            print(f"❌ TRACEBACK: {traceback.format_exc()}")
             return {"entities": [], "relations": []}
     
     async def extract_from_chunks(self, chunks: List[str]) -> Dict[str, Any]:
