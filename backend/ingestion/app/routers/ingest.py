@@ -159,6 +159,20 @@ async def ingest_pdf(
         # 7. Generate Summary
         summary = await processing_service.summarize_text(text)
 
+        # Index summary as a special chunk for high-level retrieval
+        summary_embedding = await embedding_service.generate_embedding(f"Summary of {file.filename}: {summary}")
+        await rag_client.insert_chunk(
+            user_id=user_id,
+            text=f"Document Summary for {file.filename}:\n{summary}",
+            embedding=summary_embedding,
+            metadata={
+                "type": "summary",
+                "source": file.filename,
+                "file_url": file_url,
+                "is_summary": True
+            }
+        )
+
         # 8. Save document metadata
         await firestore_service.save_document_metadata(
             user_id=user_id,

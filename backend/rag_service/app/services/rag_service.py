@@ -13,6 +13,7 @@ The pipeline ensures answers are grounded in the knowledge base.
 from typing import List, Dict, Any, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import JSONB
 
 from ..core.config import get_settings
 from ..models.chunk import DocumentChunk
@@ -47,11 +48,12 @@ async def similarity_search(
     """
     # Convert embedding to pgvector format
     embedding_str = "[" + ",".join(map(str, query_embedding)) + "]"
-    
+
     # SQL query with pgvector similarity search
     # Using <-> operator for cosine distance
+    # IMPORTANT: .columns(metadata=JSONB) ensures JSONB is properly deserialized
     query = text("""
-        SELECT 
+        SELECT
             id,
             user_id,
             text,
@@ -63,7 +65,7 @@ async def similarity_search(
         AND embedding <-> :query_embedding < :max_distance
         ORDER BY embedding <-> :query_embedding
         LIMIT :top_k
-    """)
+    """).columns(metadata=JSONB)
     
     result = await db.execute(
         query,
@@ -80,28 +82,24 @@ async def similarity_search(
     # Convert to DocumentChunk objects with distances
     chunks_with_scores = []
     for row in rows:
+        # JSONB metadata is now properly deserialized thanks to .columns(metadata=JSONB)
+        metadata = row.metadata if row.metadata else {}
+
         chunk = DocumentChunk(
             id=row.id,
             user_id=row.user_id,
             text=row.text,
-            metadata=row.metadata,
+            chunk_metadata=metadata,
             created_at=row.created_at
         )
         chunks_with_scores.append((chunk, row.distance))
-    
+
     return chunks_with_scores
 
 
 def assemble_context(chunks: List[DocumentChunk]) -> str:
     """
     Assemble retrieved chunks into a single context string.
-    
-    Formats each chunk with its source metadata for better LLM understanding.
-    
-    Args:
-        chunks: List of retrieved DocumentChunk objects
-        
-    Returns:
         Formatted context string
     """
     if not chunks:
@@ -280,6 +278,8 @@ async def rag_query_with_threshold(
     chunk_results = []
     for chunk, score in chunks_with_scores:
         metadata = chunk.chunk_metadata or {}
+        logger.info(f"Chunk {chunk.id} metadata: {metadata}")  # Debug log
+        
         chunk_type = metadata.get("type", "text")
         image_url = metadata.get("image_url") if chunk_type == "image" else None
         
