@@ -196,7 +196,7 @@ const formatSize = (size: number) => {
 
 const getStatusBadge = (status: string) => {
     // status isn't in list API explicitly, assume processed if listed
-    return { color: 'bg-green-100 text-green-700', icon: 'hugeicons:check-circle-01', text: 'Indexed' }
+    return { color: 'bg-green-100 text-green-700', icon: 'hugeicons:checkmark-circle-02', text: 'Indexed' }
 }
 </script>
 

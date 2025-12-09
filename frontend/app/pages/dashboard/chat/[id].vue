@@ -229,8 +229,8 @@ const handleRegenerateResponse = () => {
     </div>
 
     <!-- Input Area -->
-    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-transparent pt-8 pb-6 z-30 transition-all duration-300">
-      <div class="max-w-3xl mr-auto"> <!-- Adjusted styling for alignment -->
+    <div class="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-transparent pt-8 pb-6 z-30 pointer-events-none">
+      <div class="max-w-3xl mx-auto pointer-events-auto">
         <div class="bg-white border border-zinc-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-3 flex items-center gap-3">
           <textarea
             v-model="messageInput"
