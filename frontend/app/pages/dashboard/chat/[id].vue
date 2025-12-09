@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, watch, computed } from 'vue'
 import { Icon } from '@iconify/vue'
+import { marked } from 'marked'
 import { useChatStore } from '../../../../stores/chat'
 import { useRagApi } from '../../../../composables/useRagApi'
 
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
+})
+
+// Configure marked for better rendering
+marked.setOptions({
+  breaks: true,
+  gfm: true
 })
 
 const route = useRoute()
@@ -135,6 +142,11 @@ const handleRegenerateResponse = () => {
   }
 }
 
+// Render markdown content
+const renderMarkdown = (content: string) => {
+  return marked.parse(content)
+}
+
 </script>
 
 <template>
@@ -189,8 +201,17 @@ const handleRegenerateResponse = () => {
               <span class="text-xs text-zinc-400">{{ formatTime(message.timestamp) }}</span>
             </div>
 
-            <div class="text-zinc-600 leading-relaxed text-[15px] whitespace-pre-wrap">
-             {{ message.content }}
+            <!-- Message content with markdown support -->
+            <div
+              v-if="message.type === 'assistant'"
+              class="prose prose-sm prose-zinc max-w-none text-zinc-600 leading-relaxed"
+              v-html="renderMarkdown(message.content)"
+            ></div>
+            <div
+              v-else
+              class="text-zinc-600 leading-relaxed text-[15px] whitespace-pre-wrap"
+            >
+              {{ message.content }}
             </div>
 
             <!-- Sources if available -->

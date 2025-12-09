@@ -19,6 +19,7 @@
     "firebase": "^12.6.0",
     "hugeicons-vue": "^0.0.1",
     "lucide-vue-next": "^0.556.0",
+    "marked": "^17.0.1",
     "nuxt": "^4.2.1",
     "pinia": "^3.0.4",
     "swiper": "^12.0.3",
